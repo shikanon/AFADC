@@ -1,0 +1,43 @@
+
+
+.pageWrapper {
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.sidebarTransition {
+  transition: width 0.3s ease-in-out;
+}
+
+.videoCardHover:hover {
+  transform: translateY(-2px);
+  transition: all 0.2s ease-in-out;
+}
+
+.navItemActive {
+  background-color: #6366f1;
+  color: white;
+}
+
+.navItemHover:hover {
+  background-color: #f8fafc;
+  color: #6366f1;
+}
+
+.searchFocus:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.videoProgress {
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+  height: 4px;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.editingMode {
+  border: 2px solid #6366f1;
+}
+

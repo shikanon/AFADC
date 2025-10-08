@@ -1,0 +1,66 @@
+
+
+.pageWrapper {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.formInputFocus:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.btnPrimaryHover:hover {
+  background-color: rgba(99, 102, 241, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btnSecondaryHover:hover {
+  background-color: #f8fafc;
+  color: #6366f1;
+}
+
+.logoGlow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.inputGroup {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.inputField {
+  padding-left: 40px;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+.errorMessage.show {
+  display: block;
+}
+
+.successMessage {
+  color: #10b981;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+.successMessage.show {
+  display: block;
+}
+

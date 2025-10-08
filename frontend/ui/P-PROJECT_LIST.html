@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目管理 - AI漫剧快造</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        tertiary: '#06b6d4',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6',
+                        'text-primary': '#1f2937',
+                        'text-secondary': '#6b7280',
+                        'bg-light': '#f8fafc',
+                        'border-light': '#e5e7eb'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-transition {
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .project-card-hover:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .nav-item-active {
+            background-color: theme('colors.primary');
+            color: white;
+        }
+        
+        .nav-item-hover:hover {
+            background-color: theme('colors.bg-light');
+            color: theme('colors.primary');
+        }
+        
+        .search-focus:focus {
+            outline: none;
+            border-color: theme('colors.primary');
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-bg-light min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- Logo和产品名称 -->
+            <div id="logo-section" class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-magic text-white text-sm"></i>
+                </div>
+                <h1 class="text-xl font-bold text-text-primary">AI漫剧快造</h1>
+            </div>
+            
+            <!-- 全局搜索 -->
+            <div id="global-search" class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary text-sm"></i>
+                    <input type="text" id="global-search-input" placeholder="搜索项目、工作空间..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg search-focus">
+                </div>
+            </div>
+            
+            <!-- 右侧操作区 -->
+            <div id="header-actions" class="flex items-center space-x-4">
+                <!-- 消息通知 -->
+                <button id="notification-btn" class="relative p-2 text-text-secondary hover:text-primary">
+                    <i class="fas fa-bell text-lg"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                
+                <!-- 用户头像 -->
+                <div id="user-menu" class="relative">
+                    <button id="user-avatar-btn" class="flex items-center space-x-2 p-1 rounded-lg hover:bg-bg-light">
+                        <img src="https://s.coze.cn/image/iTuCeRGXxUc/" 
+                             alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                        <span class="text-sm text-text-primary">张小明</span>
+                        <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-border-light sidebar-transition z-40">
+        <nav id="sidebar-nav" class="p-4 space-y-2">
+            <!-- 工作空间 -->
+            <div id="workspace-section" class="mb-6">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">工作空间</h3>
+                <div class="space-y-1">
+                    <a href="P-WORKSPACE_LIST.html" id="nav-workspace-list" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-layer-group w-4"></i>
+                        <span>工作空间管理</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 项目管理 -->
+            <div id="project-section" class="mb-6">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">项目管理</h3>
+                <div class="space-y-1">
+                    <a href="P-PROJECT_LIST.html" id="nav-project-list" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-active">
+                        <i class="fas fa-folder w-4"></i>
+                        <span>项目列表</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 制作流程 -->
+            <div id="workflow-section" class="mb-6">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">制作流程</h3>
+                <div class="space-y-1">
+                    <a href="P-SCRIPT_INFO.html" id="nav-script-info" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-file-alt w-4"></i>
+                        <span>剧本信息</span>
+                    </a>
+                    <a href="P-CHARACTER_GENERATION.html" id="nav-character" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-user-friends w-4"></i>
+                        <span>角色IP形象</span>
+                    </a>
+                    <a href="P-VOICE_SELECTION.html" id="nav-voice" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-microphone w-4"></i>
+                        <span>音色选择</span>
+                    </a>
+                    <a href="P-SCENARIO_EDITOR.html" id="nav-scenario" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-film w-4"></i>
+                        <span>分镜脚本</span>
+                    </a>
+                    <a href="P-IMAGE_GENERATION.html" id="nav-image" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-image w-4"></i>
+                        <span>分镜画面</span>
+                    </a>
+                    <a href="P-VIDEO_GENERATION.html" id="nav-video" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-video w-4"></i>
+                        <span>分镜视频</span>
+                    </a>
+                    <a href="P-VIDEO_EXPORT.html" id="nav-export" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-download w-4"></i>
+                        <span>视频导出</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 素材库 -->
+            <div id="material-section">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">素材库</h3>
+                <div class="space-y-1">
+                    <a href="P-MATERIAL_LIBRARY.html" id="nav-material" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-palette w-4"></i>
+                        <span>素材库管理</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="ml-60 mt-16 p-6 min-h-screen">
+        <!-- 页面头部 -->
+        <div id="page-header" class="mb-6">
+            <!-- 面包屑导航 -->
+            <nav id="breadcrumb" class="mb-4">
+                <ol class="flex items-center space-x-2 text-sm text-text-secondary">
+                    <li><a href="P-WORKSPACE_LIST.html" id="breadcrumb-home" class="hover:text-primary">首页</a></li>
+                    <li><i class="fas fa-chevron-right text-xs"></i></li>
+                    <li><span id="breadcrumb-workspace" class="text-text-primary">我的工作空间</span></li>
+                    <li><i class="fas fa-chevron-right text-xs"></i></li>
+                    <li><span class="text-text-primary">项目管理</span></li>
+                </ol>
+            </nav>
+            
+            <!-- 页面标题和操作 -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-text-primary mb-2">项目管理</h1>
+                    <p class="text-text-secondary">管理和创建您的AI漫剧项目</p>
+                </div>
+                <button id="create-project-btn" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>新建项目
+                </button>
+            </div>
+        </div>
+
+        <!-- 工作空间信息栏 -->
+        <div id="workspace-info" class="bg-white rounded-xl shadow-card p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-layer-group text-white"></i>
+                    </div>
+                    <div>
+                        <h3 id="workspace-name" class="font-semibold text-text-primary">我的工作空间</h3>
+                        <p id="workspace-stats" class="text-sm text-text-secondary">5个项目 · 3名成员</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="switch-workspace-btn" class="text-text-secondary hover:text-primary">
+                        <i class="fas fa-exchange-alt mr-1"></i>切换工作空间
+                    </button>
+                    <button id="workspace-settings-btn" class="text-text-secondary hover:text-primary">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工具栏 -->
+        <div id="toolbar" class="bg-white rounded-xl shadow-card p-4 mb-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <!-- 搜索框 -->
+                <div class="flex-1 max-w-md">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                        <input type="text" id="project-search" placeholder="搜索项目名称..." 
+                               class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg search-focus">
+                    </div>
+                </div>
+                
+                <!-- 筛选和排序 -->
+                <div class="flex items-center space-x-3">
+                    <select id="project-type-filter" class="px-3 py-2 border border-border-light rounded-lg text-sm">
+                        <option value="">所有类型</option>
+                        <option value="static">AI静态漫</option>
+                        <option value="dynamic">AI动态漫</option>
+                    </select>
+                    
+                    <select id="project-status-filter" class="px-3 py-2 border border-border-light rounded-lg text-sm">
+                        <option value="">所有状态</option>
+                        <option value="draft">草稿</option>
+                        <option value="progress">进行中</option>
+                        <option value="completed">已完成</option>
+                    </select>
+                    
+                    <select id="project-sort" class="px-3 py-2 border border-border-light rounded-lg text-sm">
+                        <option value="created_desc">创建时间 ↓</option>
+                        <option value="created_asc">创建时间 ↑</option>
+                        <option value="name_asc">名称 A-Z</option>
+                        <option value="name_desc">名称 Z-A</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 项目列表 -->
+        <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- 项目卡片1 -->
+            <div id="project-card-1" class="bg-white rounded-xl shadow-card project-card-hover cursor-pointer" data-project-id="proj_001">
+                <div class="relative">
+                    <img src="https://s.coze.cn/image/lDOfhRgRd-c/" 
+                         alt="樱花之恋项目预览图" class="w-full h-48 object-cover rounded-t-xl" data-category="艺术">
+                    <div class="absolute top-3 right-3">
+                        <span class="bg-success/10 text-success px-2 py-1 rounded-full text-xs font-medium">已完成</span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-text-primary">樱花之恋</h3>
+                        <span class="text-xs text-text-secondary bg-primary/10 px-2 py-1 rounded-full">AI静态漫</span>
+                    </div>
+                    <p class="text-sm text-text-secondary mb-4 line-clamp-2">一个关于青春校园的浪漫故事，樱花飞舞的季节里，两个年轻人的相遇...</p>
+                    <div class="flex items-center justify-between text-xs text-text-secondary mb-4">
+                        <span><i class="fas fa-calendar mr-1"></i>2024-01-15</span>
+                        <span><i class="fas fa-clock mr-1"></i>3分钟</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button class="edit-project-btn text-primary hover:text-primary/80 text-sm" data-project-id="proj_001">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </button>
+                            <button class="preview-project-btn text-text-secondary hover:text-primary text-sm" data-project-id="proj_001">
+                                <i class="fas fa-eye mr-1"></i>预览
+                            </button>
+                        </div>
+                        <button class="delete-project-btn text-text-secondary hover:text-danger text-sm" data-project-id="proj_001">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 项目卡片2 -->
+            <div id="project-card-2" class="bg-white rounded-xl shadow-card project-card-hover cursor-pointer" data-project-id="proj_002">
+                <div class="relative">
+                    <img src="https://s.coze.cn/image/B_nr_FeBMBM/" 
+                         alt="星际冒险项目预览图" class="w-full h-48 object-cover rounded-t-xl" data-category="艺术">
+                    <div class="absolute top-3 right-3">
+                        <span class="bg-warning/10 text-warning px-2 py-1 rounded-full text-xs font-medium">进行中</span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-text-primary">星际冒险</h3>
+                        <span class="text-xs text-text-secondary bg-secondary/10 px-2 py-1 rounded-full">AI动态漫</span>
+                    </div>
+                    <p class="text-sm text-text-secondary mb-4 line-clamp-2">未来科幻题材，人类与外星文明的第一次接触，充满未知与挑战...</p>
+                    <div class="flex items-center justify-between text-xs text-text-secondary mb-4">
+                        <span><i class="fas fa-calendar mr-1"></i>2024-01-12</span>
+                        <span><i class="fas fa-clock mr-1"></i>5分钟</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button class="edit-project-btn text-primary hover:text-primary/80 text-sm" data-project-id="proj_002">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </button>
+                            <button class="preview-project-btn text-text-secondary hover:text-primary text-sm" data-project-id="proj_002">
+                                <i class="fas fa-eye mr-1"></i>预览
+                            </button>
+                        </div>
+                        <button class="delete-project-btn text-text-secondary hover:text-danger text-sm" data-project-id="proj_002">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 项目卡片3 -->
+            <div id="project-card-3" class="bg-white rounded-xl shadow-card project-card-hover cursor-pointer" data-project-id="proj_003">
+                <div class="relative">
+                    <img src="https://s.coze.cn/image/Vjj2Bs_z3ZA/" 
+                         alt="魔法学院项目预览图" class="w-full h-48 object-cover rounded-t-xl" data-category="艺术">
+                    <div class="absolute top-3 right-3">
+                        <span class="bg-info/10 text-info px-2 py-1 rounded-full text-xs font-medium">草稿</span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-text-primary">魔法学院</h3>
+                        <span class="text-xs text-text-secondary bg-primary/10 px-2 py-1 rounded-full">AI静态漫</span>
+                    </div>
+                    <p class="text-sm text-text-secondary mb-4 line-clamp-2">奇幻魔法世界，年轻的魔法师们在学院中的成长与冒险故事...</p>
+                    <div class="flex items-center justify-between text-xs text-text-secondary mb-4">
+                        <span><i class="fas fa-calendar mr-1"></i>2024-01-10</span>
+                        <span><i class="fas fa-clock mr-1"></i>8分钟</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button class="edit-project-btn text-primary hover:text-primary/80 text-sm" data-project-id="proj_003">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </button>
+                            <button class="preview-project-btn text-text-secondary hover:text-primary text-sm" data-project-id="proj_003">
+                                <i class="fas fa-eye mr-1"></i>预览
+                            </button>
+                        </div>
+                        <button class="delete-project-btn text-text-secondary hover:text-danger text-sm" data-project-id="proj_003">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 项目卡片4 -->
+            <div id="project-card-4" class="bg-white rounded-xl shadow-card project-card-hover cursor-pointer" data-project-id="proj_004">
+                <div class="relative">
+                    <img src="https://s.coze.cn/image/7ZHLKHrYezU/" 
+                         alt="都市传说项目预览图" class="w-full h-48 object-cover rounded-t-xl" data-category="艺术">
+                    <div class="absolute top-3 right-3">
+                        <span class="bg-success/10 text-success px-2 py-1 rounded-full text-xs font-medium">已完成</span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-text-primary">都市传说</h3>
+                        <span class="text-xs text-text-secondary bg-secondary/10 px-2 py-1 rounded-full">AI动态漫</span>
+                    </div>
+                    <p class="text-sm text-text-secondary mb-4 line-clamp-2">现代都市背景下的神秘故事，探索城市中隐藏的传说与秘密...</p>
+                    <div class="flex items-center justify-between text-xs text-text-secondary mb-4">
+                        <span><i class="fas fa-calendar mr-1"></i>2024-01-08</span>
+                        <span><i class="fas fa-clock mr-1"></i>4分钟</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button class="edit-project-btn text-primary hover:text-primary/80 text-sm" data-project-id="proj_004">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </button>
+                            <button class="preview-project-btn text-text-secondary hover:text-primary text-sm" data-project-id="proj_004">
+                                <i class="fas fa-eye mr-1"></i>预览
+                            </button>
+                        </div>
+                        <button class="delete-project-btn text-text-secondary hover:text-danger text-sm" data-project-id="proj_004">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 项目卡片5 -->
+            <div id="project-card-5" class="bg-white rounded-xl shadow-card project-card-hover cursor-pointer" data-project-id="proj_005">
+                <div class="relative">
+                    <img src="https://s.coze.cn/image/AnzmqXl2fIE/" 
+                         alt="海底世界项目预览图" class="w-full h-48 object-cover rounded-t-xl" data-category="艺术">
+                    <div class="absolute top-3 right-3">
+                        <span class="bg-warning/10 text-warning px-2 py-1 rounded-full text-xs font-medium">进行中</span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-text-primary">海底世界</h3>
+                        <span class="text-xs text-text-secondary bg-primary/10 px-2 py-1 rounded-full">AI静态漫</span>
+                    </div>
+                    <p class="text-sm text-text-secondary mb-4 line-clamp-2">美丽的海底王国，海洋生物们的生活与冒险，环保主题的温馨故事...</p>
+                    <div class="flex items-center justify-between text-xs text-text-secondary mb-4">
+                        <span><i class="fas fa-calendar mr-1"></i>2024-01-05</span>
+                        <span><i class="fas fa-clock mr-1"></i>6分钟</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button class="edit-project-btn text-primary hover:text-primary/80 text-sm" data-project-id="proj_005">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </button>
+                            <button class="preview-project-btn text-text-secondary hover:text-primary text-sm" data-project-id="proj_005">
+                                <i class="fas fa-eye mr-1"></i>预览
+                            </button>
+                        </div>
+                        <button class="delete-project-btn text-text-secondary hover:text-danger text-sm" data-project-id="proj_005">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 新建项目卡片 -->
+            <div id="create-new-project-card" class="border-2 border-dashed border-border-light rounded-xl p-8 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer">
+                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-plus text-primary text-2xl"></i>
+                </div>
+                <h3 class="font-semibold text-text-primary mb-2">创建新项目</h3>
+                <p class="text-sm text-text-secondary">开始您的AI漫剧创作之旅</p>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div id="pagination" class="flex items-center justify-between bg-white rounded-xl shadow-card p-4">
+            <div class="text-sm text-text-secondary">
+                显示 1-5 条，共 5 条记录
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="prev-page-btn" class="px-3 py-1 border border-border-light rounded text-sm text-text-secondary hover:border-primary hover:text-primary">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button id="page-1-btn" class="px-3 py-1 bg-primary text-white rounded text-sm">1</button>
+                <button id="next-page-btn" class="px-3 py-1 border border-border-light rounded text-sm text-text-secondary hover:border-primary hover:text-primary">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新建项目弹窗 -->
+    <div id="create-project-modal" class="fixed inset-0 bg-black/50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md modal-enter">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-text-primary">新建项目</h3>
+                        <button id="close-modal-btn" class="text-text-secondary hover:text-text-primary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="create-project-form" class="space-y-4">
+                        <div>
+                            <label for="project-name" class="block text-sm font-medium text-text-primary mb-2">项目名称</label>
+                            <input type="text" id="project-name" name="project-name" 
+                                   class="w-full px-3 py-2 border border-border-light rounded-lg search-focus" 
+                                   placeholder="请输入项目名称" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-text-primary mb-2">项目类型</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="project-type" value="static" class="mr-2 text-primary" checked>
+                                    <span class="text-sm">AI静态漫</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="project-type" value="dynamic" class="mr-2 text-primary">
+                                    <span class="text-sm">AI动态漫</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-end space-x-3 pt-4">
+                            <button type="button" id="cancel-create-btn" 
+                                    class="px-4 py-2 border border-border-light rounded-lg text-text-secondary hover:border-primary hover:text-primary">
+                                取消
+                            </button>
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                                创建
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-black/50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md modal-enter">
+                <div class="p-6">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-danger/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-exclamation-triangle text-danger text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-text-primary mb-2">确认删除</h3>
+                        <p class="text-sm text-text-secondary">删除后将无法恢复，确定要删除这个项目吗？</p>
+                    </div>
+                    
+                    <div class="flex items-center justify-end space-x-3">
+                        <button type="button" id="cancel-delete-btn" 
+                                class="px-4 py-2 border border-border-light rounded-lg text-text-secondary hover:border-primary hover:text-primary">
+                            取消
+                        </button>
+                        <button type="button" id="confirm-delete-btn" 
+                                class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/90">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数的辅助函数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取URL参数
+            const params = getUrlParams();
+            
+            // 如果有workspace_id参数，更新工作空间信息
+            if(params.workspace_id) {
+                loadWorkspaceInfo(params.workspace_id);
+            }
+
+            // 模拟加载工作空间信息
+            function loadWorkspaceInfo(workspaceId) {
+                const mockWorkspaces = {
+                    "ws_001": { name: "我的工作空间", projects: 5, members: 3 },
+                    "ws_002": { name: "团队协作空间", projects: 8, members: 6 },
+                    "ws_003": { name: "个人创作空间", projects: 3, members: 1 }
+                };
+                
+                const workspace = mockWorkspaces[workspaceId] || mockWorkspaces["ws_001"];
+                
+                document.querySelector('#workspace-name').textContent = workspace.name;
+                document.querySelector('#workspace-stats').textContent = `${workspace.projects}个项目 · ${workspace.members}名成员`;
+                document.querySelector('#breadcrumb-workspace').textContent = workspace.name;
+            }
+
+            // 新建项目弹窗控制
+            const createProjectBtn = document.querySelector('#create-project-btn');
+            const createNewProjectCard = document.querySelector('#create-new-project-card');
+            const createProjectModal = document.querySelector('#create-project-modal');
+            const closeModalBtn = document.querySelector('#close-modal-btn');
+            const cancelCreateBtn = document.querySelector('#cancel-create-btn');
+
+            function openModal() {
+                createProjectModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                createProjectModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+
+            createProjectBtn.addEventListener('click', openModal);
+            createNewProjectCard.addEventListener('click', openModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelCreateBtn.addEventListener('click', closeModal);
+
+            // 点击弹窗外部关闭
+            createProjectModal.addEventListener('click', (e) => {
+                if (e.target === createProjectModal) {
+                    closeModal();
+                }
+            });
+
+            // 新建项目表单提交
+            document.querySelector('#create-project-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const projectName = document.querySelector('#project-name').value;
+                const projectType = document.querySelector('input[name="project-type"]:checked').value;
+                
+                if (projectName.trim()) {
+                    // 模拟创建项目
+                    console.log('创建项目:', { name: projectName, type: projectType });
+                    
+                    // 显示成功提示
+                    alert('项目创建成功！');
+                    
+                    // 跳转到剧本信息页面
+                    const newProjectId = 'proj_' + Date.now();
+                    window.location.href = `P-SCRIPT_INFO.html?project_id=${newProjectId}`;
+                }
+            });
+
+            // 项目卡片点击事件
+            document.querySelectorAll('[id^="project-card-"]').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // 如果点击的是按钮，不触发卡片点击
+                    if (e.target.closest('button')) {
+                        return;
+                    }
+                    
+                    const projectId = card.dataset.projectId;
+                    if (projectId) {
+                        // 跳转到剧本信息页面
+                        window.location.href = `P-SCRIPT_INFO.html?project_id=${projectId}`;
+                    }
+                });
+            });
+
+            // 编辑项目按钮事件
+            document.querySelectorAll('.edit-project-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const projectId = btn.dataset.projectId;
+                    window.location.href = `P-SCRIPT_INFO.html?project_id=${projectId}`;
+                });
+            });
+
+            // 预览项目按钮事件
+            document.querySelectorAll('.preview-project-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const projectId = btn.dataset.projectId;
+                    window.location.href = `P-VIDEO_EXPORT.html?project_id=${projectId}&mode=preview`;
+                });
+            });
+
+            // 删除项目按钮事件
+            const deleteConfirmModal = document.querySelector('#delete-confirm-modal');
+            const cancelDeleteBtn = document.querySelector('#cancel-delete-btn');
+            const confirmDeleteBtn = document.querySelector('#confirm-delete-btn');
+            let currentDeleteProjectId = null;
+
+            document.querySelectorAll('.delete-project-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentDeleteProjectId = btn.dataset.projectId;
+                    deleteConfirmModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+
+            function closeDeleteModal() {
+                deleteConfirmModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                currentDeleteProjectId = null;
+            }
+
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            
+            // 点击弹窗外部关闭
+            deleteConfirmModal.addEventListener('click', (e) => {
+                if (e.target === deleteConfirmModal) {
+                    closeDeleteModal();
+                }
+            });
+
+            // 确认删除
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (currentDeleteProjectId) {
+                    console.log('删除项目:', currentDeleteProjectId);
+                    
+                    // 模拟删除项目卡片
+                    const projectCard = document.querySelector(`[data-project-id="${currentDeleteProjectId}"]`);
+                    if (projectCard) {
+                        projectCard.style.opacity = '0';
+                        projectCard.style.transform = 'scale(0.8)';
+                        setTimeout(() => {
+                            projectCard.remove();
+                        }, 300);
+                    }
+                    
+                    closeDeleteModal();
+                    
+                    // 显示删除成功提示
+                    alert('项目删除成功！');
+                }
+            });
+
+            // 搜索功能
+            document.querySelector('#project-search').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const projectCards = document.querySelectorAll('[id^="project-card-"]');
+                
+                projectCards.forEach(card => {
+                    const projectName = card.querySelector('h3').textContent.toLowerCase();
+                    const projectDesc = card.querySelector('p').textContent.toLowerCase();
+                    
+                    if (projectName.includes(searchTerm) || projectDesc.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+
+            // 筛选功能
+            document.querySelector('#project-type-filter').addEventListener('change', (e) => {
+                const filterValue = e.target.value;
+                const projectCards = document.querySelectorAll('[id^="project-card-"]');
+                
+                projectCards.forEach(card => {
+                    if (!filterValue) {
+                        card.style.display = 'block';
+                    } else {
+                        const typeBadge = card.querySelector('.bg-primary\\/10, .bg-secondary\\/10');
+                        const isStatic = typeBadge && typeBadge.textContent.includes('静态漫');
+                        
+                        if ((filterValue === 'static' && isStatic) || 
+                            (filterValue === 'dynamic' && !isStatic)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
+            });
+
+            document.querySelector('#project-status-filter').addEventListener('change', (e) => {
+                const filterValue = e.target.value;
+                const projectCards = document.querySelectorAll('[id^="project-card-"]');
+                
+                projectCards.forEach(card => {
+                    if (!filterValue) {
+                        card.style.display = 'block';
+                    } else {
+                        const statusBadge = card.querySelector('.bg-success\\/10, .bg-warning\\/10, .bg-info\\/10');
+                        const statusText = statusBadge.textContent.trim();
+                        
+                        let matchesFilter = false;
+                        switch(filterValue) {
+                            case 'completed':
+                                matchesFilter = statusText === '已完成';
+                                break;
+                            case 'progress':
+                                matchesFilter = statusText === '进行中';
+                                break;
+                            case 'draft':
+                                matchesFilter = statusText === '草稿';
+                                break;
+                        }
+                        
+                        card.style.display = matchesFilter ? 'block' : 'none';
+                    }
+                });
+            });
+
+            // 排序功能
+            document.querySelector('#project-sort').addEventListener('change', (e) => {
+                const sortValue = e.target.value;
+                const projectList = document.querySelector('#project-list');
+                const projectCards = Array.from(document.querySelectorAll('[id^="project-card-"]'));
+                
+                // 模拟排序逻辑
+                projectCards.sort((a, b) => {
+                    const aName = a.querySelector('h3').textContent;
+                    const bName = b.querySelector('h3').textContent;
+                    
+                    switch(sortValue) {
+                        case 'name_asc':
+                            return aName.localeCompare(bName);
+                        case 'name_desc':
+                            return bName.localeCompare(aName);
+                        case 'created_asc':
+                            return a.id.localeCompare(b.id);
+                        case 'created_desc':
+                            return b.id.localeCompare(a.id);
+                        default:
+                            return 0;
+                    }
+                });
+                
+                // 重新排列卡片
+                projectCards.forEach(card => {
+                    projectList.appendChild(card);
+                });
+            });
+
+            // 分页功能
+            document.querySelector('#prev-page-btn').addEventListener('click', () => {
+                console.log('上一页');
+            });
+
+            document.querySelector('#next-page-btn').addEventListener('click', () => {
+                console.log('下一页');
+            });
+
+            // 导航菜单点击事件
+            document.querySelector('#nav-workspace-list').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'P-WORKSPACE_LIST.html';
+            });
+
+            document.querySelector('#nav-script-info').addEventListener('click', (e) => {
+                e.preventDefault();
+                // 需要项目ID，这里可以跳转到项目列表或显示选择项目的提示
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-character').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-voice').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-scenario').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-image').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-video').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-export').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('请先选择一个项目');
+            });
+
+            document.querySelector('#nav-material').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'P-MATERIAL_LIBRARY.html';
+            });
+
+            // 面包屑导航点击事件
+            document.querySelector('#breadcrumb-home').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'P-WORKSPACE_LIST.html';
+            });
+
+            // 工作空间操作
+            document.querySelector('#switch-workspace-btn').addEventListener('click', () => {
+                window.location.href = 'P-WORKSPACE_LIST.html';
+            });
+
+            document.querySelector('#workspace-settings-btn').addEventListener('click', () => {
+                // 跳转到工作空间详情页
+                const workspaceId = params.workspace_id || 'ws_001';
+                window.location.href = `P-WORKSPACE_DETAIL.html?workspace_id=${workspaceId}`;
+            });
+
+            // 全局搜索功能
+            document.querySelector('#global-search-input').addEventListener('input', (e) => {
+                console.log('全局搜索:', e.target.value);
+            });
+
+            // 通知按钮
+            document.querySelector('#notification-btn').addEventListener('click', () => {
+                console.log('打开通知');
+            });
+
+            // 用户菜单
+            document.querySelector('#user-avatar-btn').addEventListener('click', () => {
+                console.log('打开用户菜单');
+            });
+        });
+    </script>
+</body>
+</html>

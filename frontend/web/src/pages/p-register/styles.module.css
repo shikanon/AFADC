@@ -1,0 +1,40 @@
+
+
+.pageWrapper {
+  background: linear-gradient(to bottom right, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+  min-height: 100vh;
+}
+
+.formInputFocus:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.passwordStrengthWeak {
+  background-color: #ef4444;
+}
+
+.passwordStrengthMedium {
+  background-color: #f59e0b;
+}
+
+.passwordStrengthStrong {
+  background-color: #10b981;
+}
+
+.fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+

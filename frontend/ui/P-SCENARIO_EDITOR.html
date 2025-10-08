@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分镜脚本生成与编辑 - AI漫剧快造</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        tertiary: '#06b6d4',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6',
+                        'text-primary': '#1f2937',
+                        'text-secondary': '#6b7280',
+                        'bg-light': '#f8fafc',
+                        'border-light': '#e5e7eb'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-transition {
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .nav-item-active {
+            background-color: theme('colors.primary');
+            color: white;
+        }
+        
+        .nav-item-hover:hover {
+            background-color: theme('colors.bg-light');
+            color: theme('colors.primary');
+        }
+        
+        .search-focus:focus {
+            outline: none;
+            border-color: theme('colors.primary');
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .scenario-card-hover:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .drag-handle {
+            cursor: grab;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .editable-content {
+            min-height: 24px;
+            outline: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        
+        .editable-content:hover {
+            background-color: rgba(99, 102, 241, 0.05);
+        }
+        
+        .editable-content:focus {
+            background-color: white;
+            border: 1px solid theme('colors.primary');
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+        
+        .ai-processing {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-bg-light min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- Logo和产品名称 -->
+            <div id="logo-section" class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-magic text-white text-sm"></i>
+                </div>
+                <h1 class="text-xl font-bold text-text-primary">AI漫剧快造</h1>
+            </div>
+            
+            <!-- 全局搜索 -->
+            <div id="global-search" class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary text-sm"></i>
+                    <input type="text" id="global-search-input" placeholder="搜索项目、工作空间..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg search-focus">
+                </div>
+            </div>
+            
+            <!-- 右侧操作区 -->
+            <div id="header-actions" class="flex items-center space-x-4">
+                <!-- 消息通知 -->
+                <button id="notification-btn" class="relative p-2 text-text-secondary hover:text-primary">
+                    <i class="fas fa-bell text-lg"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                
+                <!-- 用户头像 -->
+                <div id="user-menu" class="relative">
+                    <button id="user-avatar-btn" class="flex items-center space-x-2 p-1 rounded-lg hover:bg-bg-light">
+                        <img src="https://s.coze.cn/image/mIZhuEPK2Tw/" 
+                             alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                        <span class="text-sm text-text-primary">张小明</span>
+                        <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-border-light sidebar-transition z-40">
+        <nav id="sidebar-nav" class="p-4 space-y-2">
+            <!-- 工作空间 -->
+            <div id="workspace-section" class="mb-6">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">工作空间</h3>
+                <div class="space-y-1">
+                    <a href="P-WORKSPACE_LIST.html" id="nav-workspace-list" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-layer-group w-4"></i>
+                        <span>工作空间管理</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 项目管理 -->
+            <div id="project-section" class="mb-6">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">项目管理</h3>
+                <div class="space-y-1">
+                    <a href="P-PROJECT_LIST.html" id="nav-project-list" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-folder w-4"></i>
+                        <span>项目列表</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 制作流程 -->
+            <div id="workflow-section" class="mb-6">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">制作流程</h3>
+                <div class="space-y-1">
+                    <a href="P-SCRIPT_INFO.html" id="nav-script-info" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-file-alt w-4"></i>
+                        <span>剧本信息</span>
+                    </a>
+                    <a href="P-CHARACTER_GENERATION.html" id="nav-character" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-user-friends w-4"></i>
+                        <span>角色IP形象</span>
+                    </a>
+                    <a href="P-VOICE_SELECTION.html" id="nav-voice" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-microphone w-4"></i>
+                        <span>音色选择</span>
+                    </a>
+                    <a href="P-SCENARIO_EDITOR.html" id="nav-scenario" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-active">
+                        <i class="fas fa-film w-4"></i>
+                        <span>分镜脚本</span>
+                    </a>
+                    <a href="P-IMAGE_GENERATION.html" id="nav-image" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-image w-4"></i>
+                        <span>分镜画面</span>
+                    </a>
+                    <a href="P-VIDEO_GENERATION.html" id="nav-video" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-video w-4"></i>
+                        <span>分镜视频</span>
+                    </a>
+                    <a href="P-VIDEO_EXPORT.html" id="nav-export" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-download w-4"></i>
+                        <span>视频导出</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 素材库 -->
+            <div id="material-section">
+                <h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">素材库</h3>
+                <div class="space-y-1">
+                    <a href="P-MATERIAL_LIBRARY.html" id="nav-material" 
+                       class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm nav-item-hover">
+                        <i class="fas fa-palette w-4"></i>
+                        <span>素材库管理</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="ml-60 mt-16 p-6 min-h-screen">
+        <!-- 页面头部 -->
+        <div id="page-header" class="mb-6">
+            <!-- 面包屑导航 -->
+            <nav id="breadcrumb" class="mb-4">
+                <ol class="flex items-center space-x-2 text-sm text-text-secondary">
+                    <li><a href="P-PROJECT_LIST.html" class="hover:text-primary">项目管理</a></li>
+                    <li><i class="fas fa-chevron-right text-xs"></i></li>
+                    <li><span class="text-text-primary">樱花之恋</span></li>
+                    <li><i class="fas fa-chevron-right text-xs"></i></li>
+                    <li><span class="text-text-primary">分镜脚本生成与编辑</span></li>
+                </ol>
+            </nav>
+            
+            <!-- 页面标题和操作 -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-text-primary mb-2">分镜脚本生成与编辑</h1>
+                    <p class="text-text-secondary">使用AI自动拆分剧本，或手动编辑分镜内容</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="ai-split-btn" class="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
+                        <i class="fas fa-magic mr-2"></i>AI拆分分镜
+                    </button>
+                    <button id="save-btn" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                    <button id="next-btn" class="bg-success text-white px-6 py-2 rounded-lg hover:bg-success/90 transition-colors">
+                        <i class="fas fa-arrow-right mr-2"></i>下一步
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 剧本输入区 -->
+        <div id="script-input-section" class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-text-primary">完整剧本</h3>
+                <div class="flex items-center space-x-2">
+                    <span id="script-word-count" class="text-sm text-text-secondary">字数：0</span>
+                    <button id="clear-script-btn" class="text-text-secondary hover:text-danger text-sm">
+                        <i class="fas fa-trash mr-1"></i>清空
+                    </button>
+                </div>
+            </div>
+            <textarea id="full-script" 
+                      class="w-full h-48 p-4 border border-border-light rounded-lg search-focus resize-none" 
+                      placeholder="请粘贴完整的剧本内容，AI将自动拆分成分镜脚本...">樱花飞舞的三月，校园里充满了春天的气息。
+
+第一幕：樱花树下的相遇
+(场景：学校樱花大道)
+(人物：小雨、小风)
+
+小雨：(看着飘落的樱花，轻声感叹) 樱花真的好美啊...
+小风：(从身后走来，微笑着) 是啊，每年这个时候都是最美的。
+
+小雨：(惊讶地回头) 啊，你是...
+小风：我是学生会的小风，你是新来的转学生小雨吧？我看过你的资料。
+
+小雨：(脸红) 是的，我是小雨。谢谢你的照顾。
+小风：不用客气，以后有什么需要帮忙的都可以找我。
+
+第二幕：图书馆的约定
+(场景：学校图书馆)
+(人物：小雨、小风)
+
+小雨：(正在找书，不小心碰到了书架) 啊！
+小风：(及时扶住小雨) 小心点，这里的书很多。
+小雨：(感激地) 谢谢你，又麻烦你了。
+小风：没关系，我正好也来借书。你在找什么书？
+
+小雨：我在找关于日本文学的书，想了解更多樱花的文化。
+小风：真巧，我对这个也很感兴趣。不如我们一起看吧？
+
+小雨：(开心地) 好啊！那太好了！
+
+第三幕：黄昏的告白
+(场景：学校屋顶)
+(人物：小雨、小风)
+
+小风：(看着夕阳) 小雨，有件事我想告诉你很久了。
+小雨：(心跳加速) 什么事？
+小风：自从第一次在樱花树下遇见你，我就...
+
+(夕阳下，两个年轻人的身影被拉得很长，樱花的花瓣在空中飞舞，仿佛在见证这个美好的时刻。)</textarea>
+        </div>
+
+        <!-- AI拆分状态提示 -->
+        <div id="ai-processing-indicator" class="bg-white rounded-xl shadow-card p-4 mb-6 hidden">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div>
+                    <h4 class="font-medium text-text-primary">AI正在拆分剧本</h4>
+                    <p class="text-sm text-text-secondary">请稍候，正在为您生成分镜脚本...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分镜列表 -->
+        <div id="scenario-list-section" class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-text-primary">分镜脚本</h3>
+                <div class="flex items-center space-x-3">
+                    <span id="scenario-count" class="text-sm text-text-secondary">共 0 个分镜</span>
+                    <button id="add-scenario-btn" class="bg-primary/10 text-primary px-4 py-2 rounded-lg hover:bg-primary/20 transition-colors text-sm">
+                        <i class="fas fa-plus mr-1"></i>添加分镜
+                    </button>
+                </div>
+            </div>
+            
+            <div id="scenario-list" class="space-y-4">
+                <!-- 分镜卡片将通过JavaScript动态生成 -->
+            </div>
+            
+            <!-- 空状态 -->
+            <div id="empty-state" class="text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-film text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-text-primary mb-2">暂无分镜脚本</h3>
+                <p class="text-text-secondary mb-6">请在上方输入剧本内容，然后点击"AI拆分分镜"按钮</p>
+                <button id="empty-ai-split-btn" class="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
+                    <i class="fas fa-magic mr-2"></i>AI拆分分镜
+                </button>
+            </div>
+        </div>
+
+        <!-- 底部操作区 -->
+        <div id="bottom-actions" class="bg-white rounded-xl shadow-card p-4">
+            <div class="flex items-center justify-between">
+                <button id="prev-btn" class="px-6 py-2 border border-border-light rounded-lg text-text-secondary hover:border-primary hover:text-primary transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>上一步
+                </button>
+                <div class="flex items-center space-x-3">
+                    <button id="save-bottom-btn" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                        <i class="fas fa-save mr-2"></i>保存
+                    </button>
+                    <button id="next-bottom-btn" class="bg-success text-white px-6 py-2 rounded-lg hover:bg-success/90 transition-colors">
+                        <i class="fas fa-arrow-right mr-2"></i>下一步
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 删除确认弹窗 -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-black/50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-danger/10 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-exclamation-triangle text-danger text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-text-primary">确认删除</h3>
+                            <p class="text-sm text-text-secondary">此操作不可撤销</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-text-secondary mb-6">确定要删除这个分镜吗？删除后将无法恢复。</p>
+                    
+                    <div class="flex items-center justify-end space-x-3">
+                        <button id="cancel-delete-btn" 
+                                class="px-4 py-2 border border-border-light rounded-lg text-text-secondary hover:border-primary hover:text-primary">
+                            取消
+                        </button>
+                        <button id="confirm-delete-btn" 
+                                class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/90">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取URL参数
+            const params = getUrlParams();
+            const projectId = params.projectId || 'default';
+
+            // 模拟分镜数据
+            let scenarios = [];
+            let currentDeleteScenarioId = null;
+
+            // 剧本字数统计
+            const fullScriptTextarea = document.querySelector('#full-script');
+            const scriptWordCount = document.querySelector('#script-word-count');
+
+            function updateWordCount() {
+                const text = fullScriptTextarea.value;
+                const count = text.length;
+                scriptWordCount.textContent = `字数：${count}`;
+            }
+
+            fullScriptTextarea.addEventListener('input', updateWordCount);
+            updateWordCount(); // 初始化
+
+            // 清空剧本
+            document.querySelector('#clear-script-btn').addEventListener('click', function() {
+                if (confirm('确定要清空剧本内容吗？')) {
+                    fullScriptTextarea.value = '';
+                    updateWordCount();
+                }
+            });
+
+            // AI拆分分镜
+            function aiSplitScenario() {
+                const scriptContent = fullScriptTextarea.value.trim();
+                if (!scriptContent) {
+                    alert('请先输入剧本内容');
+                    return;
+                }
+
+                // 显示处理状态
+                document.querySelector('#ai-processing-indicator').classList.remove('hidden');
+                document.querySelector('#empty-state').classList.add('hidden');
+
+                // 模拟AI处理过程
+                setTimeout(() => {
+                    // 模拟生成的分镜数据
+                    scenarios = [
+                        {
+                            id: 'scenario-1',
+                            index: 1,
+                            shotDescription: '樱花飞舞的校园樱花大道，小雨站在樱花树下，抬头看着飘落的樱花花瓣，表情温柔而陶醉。背景是粉色的樱花和绿色的草地，营造出浪漫的春日氛围。',
+                            relatedCharacters: ['小雨'],
+                            narratorText: '樱花飞舞的三月，校园里充满了春天的气息。小雨站在樱花树下，感受着这美好的季节。',
+                            dialogueText: '小雨：(轻声感叹) 樱花真的好美啊...'
+                        },
+                        {
+                            id: 'scenario-2',
+                            index: 2,
+                            shotDescription: '小风从樱花树后走出，面带微笑地看着小雨。两人的位置形成自然的对话构图，樱花花瓣在两人之间飘落。',
+                            relatedCharacters: ['小雨', '小风'],
+                            narratorText: '就在这时，学生会的小风恰好路过，被小雨的身影吸引。',
+                            dialogueText: '小风：(微笑着) 是啊，每年这个时候都是最美的。\n小雨：(惊讶地回头) 啊，你是...\n小风：我是学生会的小风，你是新来的转学生小雨吧？我看过你的资料。\n小雨：(脸红) 是的，我是小雨。谢谢你的照顾。\n小风：不用客气，以后有什么需要帮忙的都可以找我。'
+                        },
+                        {
+                            id: 'scenario-3',
+                            index: 3,
+                            shotDescription: '图书馆内景，书架林立，光线柔和。小雨正在寻找书籍，不小心碰到了书架，小风及时出现扶住了她。',
+                            relatedCharacters: ['小雨', '小风'],
+                            narratorText: '几天后，在学校图书馆，两人再次相遇。',
+                            dialogueText: '小雨：(正在找书，不小心碰到了书架) 啊！\n小风：(及时扶住小雨) 小心点，这里的书很多。\n小雨：(感激地) 谢谢你，又麻烦你了。\n小风：没关系，我正好也来借书。你在找什么书？\n小雨：我在找关于日本文学的书，想了解更多樱花的文化。\n小风：真巧，我对这个也很感兴趣。不如我们一起看吧？\n小雨：(开心地) 好啊！那太好了！'
+                        },
+                        {
+                            id: 'scenario-4',
+                            index: 4,
+                            shotDescription: '学校屋顶，黄昏时分，夕阳染红了天空。小雨和小风并肩站在栏杆边，背景是美丽的晚霞和远处的城市轮廓。',
+                            relatedCharacters: ['小雨', '小风'],
+                            narratorText: '在一个美丽的黄昏，小风约小雨到学校屋顶。',
+                            dialogueText: '小风：(看着夕阳) 小雨，有件事我想告诉你很久了。\n小雨：(心跳加速) 什么事？\n小风：自从第一次在樱花树下遇见你，我就...'
+                        }
+                    ];
+
+                    renderScenarioList();
+                    document.querySelector('#ai-processing-indicator').classList.add('hidden');
+                    updateScenarioCount();
+                }, 3000);
+            }
+
+            // 渲染分镜列表
+            function renderScenarioList() {
+                const scenarioList = document.querySelector('#scenario-list');
+                const emptyState = document.querySelector('#empty-state');
+
+                if (scenarios.length === 0) {
+                    scenarioList.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+                scenarioList.innerHTML = scenarios.map(scenario => `
+                    <div id="scenario-card-${scenario.id}" class="bg-white rounded-xl shadow-card scenario-card-hover">
+                        <div class="p-6">
+                            <!-- 分镜头部 -->
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="drag-handle text-text-secondary hover:text-primary">
+                                        <i class="fas fa-grip-vertical"></i>
+                                    </div>
+                                    <h4 class="font-semibold text-text-primary">分镜 #${scenario.index}</h4>
+                                    <div class="flex items-center space-x-1">
+                                        ${scenario.relatedCharacters.map(character => 
+                                            `<span class="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">${character}</span>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="edit-scenario-btn text-primary hover:text-primary/80 text-sm" data-scenario-id="${scenario.id}">
+                                        <i class="fas fa-edit mr-1"></i>编辑
+                                    </button>
+                                    <button class="move-up-btn text-text-secondary hover:text-primary text-sm" data-scenario-id="${scenario.id}">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                    <button class="move-down-btn text-text-secondary hover:text-primary text-sm" data-scenario-id="${scenario.id}">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <button class="delete-scenario-btn text-text-secondary hover:text-danger text-sm" data-scenario-id="${scenario.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 分镜内容 -->
+                            <div class="space-y-4">
+                                <!-- 画面描述 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-text-primary mb-2">画面描述</label>
+                                    <div class="editable-content" data-field="shotDescription" data-scenario-id="${scenario.id}" contenteditable="true">
+                                        ${scenario.shotDescription}
+                                    </div>
+                                </div>
+
+                                <!-- 关联角色 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-text-primary mb-2">关联角色</label>
+                                    <select class="characters-select w-full px-3 py-2 border border-border-light rounded-lg search-focus" data-scenario-id="${scenario.id}" multiple>
+                                        <option value="小雨" ${scenario.relatedCharacters.includes('小雨') ? 'selected' : ''}>小雨</option>
+                                        <option value="小风" ${scenario.relatedCharacters.includes('小风') ? 'selected' : ''}>小风</option>
+                                        <option value="老师" ${scenario.relatedCharacters.includes('老师') ? 'selected' : ''}>老师</option>
+                                        <option value="同学" ${scenario.relatedCharacters.includes('同学') ? 'selected' : ''}>同学</option>
+                                    </select>
+                                    <p class="text-xs text-text-secondary mt-1">按住Ctrl键可多选</p>
+                                </div>
+
+                                <!-- 旁白 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-text-primary mb-2">旁白</label>
+                                    <div class="editable-content" data-field="narratorText" data-scenario-id="${scenario.id}" contenteditable="true">
+                                        ${scenario.narratorText}
+                                    </div>
+                                </div>
+
+                                <!-- 对话 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-text-primary mb-2">对话</label>
+                                    <div class="editable-content min-h-[80px]" data-field="dialogueText" data-scenario-id="${scenario.id}" contenteditable="true">
+                                        ${scenario.dialogueText}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // 绑定事件
+                bindScenarioEvents();
+            }
+
+            // 绑定分镜事件
+            function bindScenarioEvents() {
+                // 编辑按钮
+                document.querySelectorAll('.edit-scenario-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const scenarioId = this.dataset.scenarioId;
+                        const scenarioCard = document.querySelector(`#scenario-card-${scenarioId}`);
+                        scenarioCard.scrollIntoView({ behavior: 'smooth' });
+                        scenarioCard.querySelector('.editable-content').focus();
+                    });
+                });
+
+                // 删除按钮
+                document.querySelectorAll('.delete-scenario-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        currentDeleteScenarioId = this.dataset.scenarioId;
+                        document.querySelector('#delete-confirm-modal').classList.remove('hidden');
+                    });
+                });
+
+                // 上移按钮
+                document.querySelectorAll('.move-up-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const scenarioId = this.dataset.scenarioId;
+                        moveScenario(scenarioId, -1);
+                    });
+                });
+
+                // 下移按钮
+                document.querySelectorAll('.move-down-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const scenarioId = this.dataset.scenarioId;
+                        moveScenario(scenarioId, 1);
+                    });
+                });
+
+                // 可编辑内容
+                document.querySelectorAll('.editable-content').forEach(element => {
+                    element.addEventListener('input', function() {
+                        const scenarioId = this.dataset.scenarioId;
+                        const field = this.dataset.field;
+                        const value = this.textContent;
+                        updateScenarioField(scenarioId, field, value);
+                    });
+                });
+
+                // 角色选择
+                document.querySelectorAll('.characters-select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const scenarioId = this.dataset.scenarioId;
+                        const selectedOptions = Array.from(this.selectedOptions).map(option => option.value);
+                        updateScenarioCharacters(scenarioId, selectedOptions);
+                    });
+                });
+
+                // 拖拽功能
+                initDragAndDrop();
+            }
+
+            // 更新分镜字段
+            function updateScenarioField(scenarioId, field, value) {
+                const scenario = scenarios.find(s => s.id === scenarioId);
+                if (scenario) {
+                    scenario[field] = value;
+                    console.log(`更新分镜 ${scenarioId} 的 ${field} 字段`);
+                }
+            }
+
+            // 更新分镜角色
+            function updateScenarioCharacters(scenarioId, characters) {
+                const scenario = scenarios.find(s => s.id === scenarioId);
+                if (scenario) {
+                    scenario.relatedCharacters = characters;
+                    // 更新UI中的角色标签
+                    const scenarioCard = document.querySelector(`#scenario-card-${scenarioId}`);
+                    const characterTags = scenarioCard.querySelector('.flex.items-center.space-x-1');
+                    characterTags.innerHTML = characters.map(character => 
+                        `<span class="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">${character}</span>`
+                    ).join('');
+                    console.log(`更新分镜 ${scenarioId} 的角色`);
+                }
+            }
+
+            // 移动分镜
+            function moveScenario(scenarioId, direction) {
+                const index = scenarios.findIndex(s => s.id === scenarioId);
+                if (index === -1) return;
+
+                const newIndex = index + direction;
+                if (newIndex < 0 || newIndex >= scenarios.length) return;
+
+                // 交换位置
+                [scenarios[index], scenarios[newIndex]] = [scenarios[newIndex], scenarios[index]];
+                
+                // 更新序号
+                updateScenarioIndices();
+                
+                // 重新渲染
+                renderScenarioList();
+                console.log(`移动分镜 ${scenarioId} 到新位置`);
+            }
+
+            // 更新分镜序号
+            function updateScenarioIndices() {
+                scenarios.forEach((scenario, index) => {
+                    scenario.index = index + 1;
+                });
+            }
+
+            // 初始化拖拽功能
+            function initDragAndDrop() {
+                let draggedElement = null;
+
+                document.querySelectorAll('.drag-handle').forEach(handle => {
+                    handle.addEventListener('dragstart', function(e) {
+                        draggedElement = this.closest('[id^="scenario-card-"]');
+                        e.dataTransfer.effectAllowed = 'move';
+                    });
+
+                    handle.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    });
+
+                    handle.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        if (draggedElement) {
+                            const targetElement = this.closest('[id^="scenario-card-"]');
+                            if (draggedElement !== targetElement) {
+                                // 这里可以实现拖拽排序逻辑
+                                console.log('拖拽排序功能需要实现');
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 添加新分镜
+            function addScenario() {
+                const newScenario = {
+                    id: `scenario-${Date.now()}`,
+                    index: scenarios.length + 1,
+                    shotDescription: '请输入画面描述...',
+                    relatedCharacters: [],
+                    narratorText: '请输入旁白...',
+                    dialogueText: '请输入对话...'
+                };
+
+                scenarios.push(newScenario);
+                renderScenarioList();
+                updateScenarioCount();
+                
+                // 滚动到新添加的分镜
+                setTimeout(() => {
+                    const newCard = document.querySelector(`#scenario-card-${newScenario.id}`);
+                    if (newCard) {
+                        newCard.scrollIntoView({ behavior: 'smooth' });
+                        newCard.querySelector('.editable-content').focus();
+                    }
+                }, 100);
+            }
+
+            // 删除分镜
+            function deleteScenario(scenarioId) {
+                scenarios = scenarios.filter(s => s.id !== scenarioId);
+                updateScenarioIndices();
+                renderScenarioList();
+                updateScenarioCount();
+                console.log(`删除分镜 ${scenarioId}`);
+            }
+
+            // 更新分镜数量
+            function updateScenarioCount() {
+                document.querySelector('#scenario-count').textContent = `共 ${scenarios.length} 个分镜`;
+            }
+
+            // 保存功能
+            function saveScenario() {
+                if (scenarios.length === 0) {
+                    alert('请先创建分镜脚本');
+                    return;
+                }
+
+                // 模拟保存过程
+                const saveBtn = document.querySelector('#save-btn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>保存中...';
+                saveBtn.disabled = true;
+
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>保存成功';
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.disabled = false;
+                    }, 2000);
+                }, 1000);
+
+                console.log('保存分镜脚本:', scenarios);
+            }
+
+            // 事件绑定
+
+            // AI拆分按钮
+            document.querySelector('#ai-split-btn').addEventListener('click', aiSplitScenario);
+            document.querySelector('#empty-ai-split-btn').addEventListener('click', aiSplitScenario);
+
+            // 添加分镜按钮
+            document.querySelector('#add-scenario-btn').addEventListener('click', addScenario);
+
+            // 保存按钮
+            document.querySelector('#save-btn').addEventListener('click', saveScenario);
+            document.querySelector('#save-bottom-btn').addEventListener('click', saveScenario);
+
+            // 下一步按钮
+            document.querySelector('#next-btn').addEventListener('click', function() {
+                if (scenarios.length === 0) {
+                    alert('请先创建分镜脚本');
+                    return;
+                }
+                saveScenario();
+                setTimeout(() => {
+                    window.location.href = `P-IMAGE_GENERATION.html?projectId=${projectId}`;
+                }, 1000);
+            });
+
+            document.querySelector('#next-bottom-btn').addEventListener('click', function() {
+                document.querySelector('#next-btn').click();
+            });
+
+            // 上一步按钮
+            document.querySelector('#prev-btn').addEventListener('click', function() {
+                window.location.href = `P-VOICE_SELECTION.html?projectId=${projectId}`;
+            });
+
+            // 删除确认弹窗
+            document.querySelector('#cancel-delete-btn').addEventListener('click', function() {
+                document.querySelector('#delete-confirm-modal').classList.add('hidden');
+                currentDeleteScenarioId = null;
+            });
+
+            document.querySelector('#confirm-delete-btn').addEventListener('click', function() {
+                if (currentDeleteScenarioId) {
+                    deleteScenario(currentDeleteScenarioId);
+                    document.querySelector('#delete-confirm-modal').classList.add('hidden');
+                    currentDeleteScenarioId = null;
+                }
+            });
+
+            // 点击弹窗外部关闭
+            document.querySelector('#delete-confirm-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                    currentDeleteScenarioId = null;
+                }
+            });
+
+            // 初始化页面
+            renderScenarioList();
+        });
+    </script>
+</body>
+</html>
