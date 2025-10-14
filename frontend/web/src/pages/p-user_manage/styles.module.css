@@ -1,0 +1,71 @@
+
+
+/* 页面包装器样式 - 来自body标签 */
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+/* 侧边栏样式 */
+.sidebarCollapsed {
+  width: 56px;
+}
+
+.sidebarExpanded {
+  width: 240px;
+}
+
+/* 主内容区样式 */
+.mainContentExpanded {
+  margin-left: 240px;
+}
+
+.mainContentCollapsed {
+  margin-left: 56px;
+}
+
+/* 表格行悬停效果 */
+.tableRowHover:hover {
+  background-color: #F8FAFC;
+}
+
+/* 角色徽章样式 */
+.roleBadge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.roleAdmin {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.roleEditor {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+/* 模态弹窗样式 */
+.modalOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modalContent {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* 表单输入框焦点样式 */
+.formInputFocus:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+

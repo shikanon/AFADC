@@ -1,0 +1,92 @@
+
+
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+.sidebarCollapsed {
+  width: 56px;
+}
+
+.sidebarExpanded {
+  width: 240px;
+}
+
+.mainContentExpanded {
+  margin-left: 240px;
+}
+
+.mainContentCollapsed {
+  margin-left: 56px;
+}
+
+.stepIndicator {
+  position: relative;
+}
+
+.stepIndicator::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 30px;
+  bottom: -20px;
+  width: 2px;
+  background-color: #E2E8F0;
+}
+
+.stepIndicator:last-child::after {
+  display: none;
+}
+
+.stepActive .stepNumber {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.stepActive .stepTitle {
+  color: #3B82F6;
+  font-weight: 600;
+}
+
+.stepCompleted .stepNumber {
+  background-color: #22C55E;
+  color: white;
+}
+
+.stepCompleted::after {
+  background-color: #22C55E;
+}
+
+.formInputFocus:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.radioCustom {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #CBD5E1;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+}
+
+.radioCustom:checked {
+  border-color: #3B82F6;
+}
+
+.radioCustom:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: #3B82F6;
+  border-radius: 50%;
+}
+

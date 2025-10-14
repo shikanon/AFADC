@@ -1,0 +1,64 @@
+
+
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+.sidebarCollapsed {
+  width: 56px;
+}
+
+.sidebarExpanded {
+  width: 240px;
+}
+
+.mainContentExpanded {
+  margin-left: 240px;
+}
+
+.mainContentCollapsed {
+  margin-left: 56px;
+}
+
+.tableRowHover:hover {
+  background-color: #F8FAFC;
+}
+
+.providerBadge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.providerOpenai {
+  background-color: #F0F9FF;
+  color: #0284C7;
+}
+
+.providerMidjourney {
+  background-color: #F3E8FF;
+  color: #7C3AED;
+}
+
+.providerStableDiffusion {
+  background-color: #F0FDF4;
+  color: #16A34A;
+}
+
+.providerElevenlabs {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.providerAzure {
+  background-color: #FCE7F3;
+  color: #DB2777;
+}
+
+.keyMasked {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+

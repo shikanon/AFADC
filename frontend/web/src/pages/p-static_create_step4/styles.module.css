@@ -1,0 +1,137 @@
+
+
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+.sidebarCollapsed {
+  width: 56px;
+}
+
+.sidebarExpanded {
+  width: 240px;
+}
+
+.mainContentExpanded {
+  margin-left: 240px;
+}
+
+.mainContentCollapsed {
+  margin-left: 56px;
+}
+
+.stepIndicator {
+  position: relative;
+}
+
+.stepIndicator::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 12px;
+  width: 2px;
+  height: calc(100% - 40px);
+  background-color: #E2E8F0;
+}
+
+.stepItem {
+  position: relative;
+  z-index: 1;
+}
+
+.stepItem.active::before {
+  background-color: #3B82F6;
+  border-color: #3B82F6;
+}
+
+.stepItem.completed::before {
+  background-color: #22C55E;
+  border-color: #22C55E;
+}
+
+.stepItem::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #E2E8F0;
+  background-color: white;
+}
+
+.stepItem.completed::after {
+  content: '✓';
+  position: absolute;
+  top: 14px;
+  left: 8px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.videoContainer {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.videoContainer::before {
+  content: '';
+  display: block;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.videoPlayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.formGroup {
+  margin-bottom: 24px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #1F2937;
+}
+
+.formControl {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.formControl:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.colorPicker {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.videoActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  justify-content: center;
+}
+

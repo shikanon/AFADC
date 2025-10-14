@@ -1,0 +1,103 @@
+
+
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+.modalBackdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.assetCard {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.assetCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+}
+
+.assetCard.selected {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.assetPreview {
+  position: relative;
+  overflow: hidden;
+}
+
+.assetOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.assetCard:hover .assetOverlay {
+  opacity: 1;
+}
+
+.assetTypeBadge {
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.typeImage {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.typeAudio {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.typeVideo {
+  background-color: #FCE7F3;
+  color: #BE185D;
+}
+
+.subtypeCharacter {
+  background-color: #E0E7FF;
+  color: #3730A3;
+}
+
+.subtypeScene {
+  background-color: #C7D2FE;
+  color: #5B21B6;
+}
+
+.subtypeBgm {
+  background-color: #BBF7D0;
+  color: #166534;
+}
+
+.subtypeVoice {
+  background-color: #A7F3D0;
+  color: #065F46;
+}
+
+.subtypeEffect {
+  background-color: #FDE68A;
+  color: #92400E;
+}
+
+.searchHighlight {
+  background-color: #FEF3C7;
+  padding: 1px 2px;
+  border-radius: 2px;
+}
+

@@ -3,17 +3,24 @@ import { useEffect } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
 import P_login from '../pages/p-login';
-import P_register from '../pages/p-register';
-import P_workspace_list from '../pages/p-workspace_list';
-import P_project_list from '../pages/p-project_list';
-import P_script_info from '../pages/p-script_info';
-import P_character_generation from '../pages/p-character_generation';
-import P_voice_selection from '../pages/p-voice_selection';
-import P_scenario_editor from '../pages/p-scenario_editor';
-import P_image_generation from '../pages/p-image_generation';
-import P_video_generation from '../pages/p-video_generation';
-import P_video_export from '../pages/p-video_export';
-import P_material_library from '../pages/p-material_library';
+import P_project_manage from '../pages/p-project_manage';
+import P_asset_manage from '../pages/p-asset_manage';
+import P_user_manage from '../pages/p-user_manage';
+import P_plan_manage from '../pages/p-plan_manage';
+import P_api_key_setting from '../pages/p-api_key_setting';
+import P_static_create_step1 from '../pages/p-static_create_step1';
+import P_static_create_step2 from '../pages/p-static_create_step2';
+import P_static_create_step3 from '../pages/p-static_create_step3';
+import P_static_create_step4 from '../pages/p-static_create_step4';
+import P_dynamic_create_step1 from '../pages/p-dynamic_create_step1';
+import P_dynamic_create_step2 from '../pages/p-dynamic_create_step2';
+import P_dynamic_create_step3 from '../pages/p-dynamic_create_step3';
+import P_dynamic_create_step4 from '../pages/p-dynamic_create_step4';
+import P_dynamic_create_step5 from '../pages/p-dynamic_create_step5';
+import P_image_edit_dialog from '../pages/p-image_edit_dialog';
+import P_video_edit_dialog from '../pages/p-video_edit_dialog';
+import P_asset_select_dialog from '../pages/p-asset_select_dialog';
+import P_confirm_dialog from '../pages/p-confirm_dialog';
 import NotFoundPage from './NotFoundPage';
 import ErrorPage from './ErrorPage';
 
@@ -55,100 +62,163 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
       {
-    path: '/register',
+    path: '/project-manage',
     element: (
       <ErrorBoundary>
-        <P_register />
+        <P_project_manage />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/workspace-list',
+    path: '/asset-manage',
     element: (
       <ErrorBoundary>
-        <P_workspace_list />
+        <P_asset_manage />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/project-list',
+    path: '/user-manage',
     element: (
       <ErrorBoundary>
-        <P_project_list />
+        <P_user_manage />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/script-info',
+    path: '/plan-manage',
     element: (
       <ErrorBoundary>
-        <P_script_info />
+        <P_plan_manage />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/character-generation',
+    path: '/api-key-setting',
     element: (
       <ErrorBoundary>
-        <P_character_generation />
+        <P_api_key_setting />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/voice-selection',
+    path: '/static-create-step1',
     element: (
       <ErrorBoundary>
-        <P_voice_selection />
+        <P_static_create_step1 />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/scenario-editor',
+    path: '/static-create-step2',
     element: (
       <ErrorBoundary>
-        <P_scenario_editor />
+        <P_static_create_step2 />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/image-generation',
+    path: '/static-create-step3',
     element: (
       <ErrorBoundary>
-        <P_image_generation />
+        <P_static_create_step3 />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/video-generation',
+    path: '/static-create-step4',
     element: (
       <ErrorBoundary>
-        <P_video_generation />
+        <P_static_create_step4 />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/video-export',
+    path: '/dynamic-create-step1',
     element: (
       <ErrorBoundary>
-        <P_video_export />
+        <P_dynamic_create_step1 />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
   },
       {
-    path: '/material-library',
+    path: '/dynamic-create-step2',
     element: (
       <ErrorBoundary>
-        <P_material_library />
+        <P_dynamic_create_step2 />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/dynamic-create-step3',
+    element: (
+      <ErrorBoundary>
+        <P_dynamic_create_step3 />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/dynamic-create-step4',
+    element: (
+      <ErrorBoundary>
+        <P_dynamic_create_step4 />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/dynamic-create-step5',
+    element: (
+      <ErrorBoundary>
+        <P_dynamic_create_step5 />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/image-edit-dialog',
+    element: (
+      <ErrorBoundary>
+        <P_image_edit_dialog />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/video-edit-dialog',
+    element: (
+      <ErrorBoundary>
+        <P_video_edit_dialog />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/asset-select-dialog',
+    element: (
+      <ErrorBoundary>
+        <P_asset_select_dialog />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/confirm-dialog',
+    element: (
+      <ErrorBoundary>
+        <P_confirm_dialog />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,

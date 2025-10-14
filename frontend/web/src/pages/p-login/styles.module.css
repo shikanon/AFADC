@@ -7,23 +7,28 @@
 
 .formInputFocus:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .btnPrimaryHover:hover {
-  background-color: rgba(99, 102, 241, 0.9);
+  background-color: #2563EB;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .btnSecondaryHover:hover {
-  background-color: #f8fafc;
-  color: #6366f1;
+  background-color: #F1F5F9;
+  color: #3B82F6;
 }
 
-.logoGlow {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+.logoAnimation {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
 .inputGroup {
@@ -35,7 +40,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: #6B7280;
 }
 
 .inputField {
@@ -43,24 +48,13 @@
 }
 
 .errorMessage {
-  color: #ef4444;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+  color: #EF4444;
+  font-size: 12px;
+  margin-top: 4px;
   display: none;
 }
 
 .errorMessage.show {
-  display: block;
-}
-
-.successMessage {
-  color: #10b981;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  display: none;
-}
-
-.successMessage.show {
   display: block;
 }
 

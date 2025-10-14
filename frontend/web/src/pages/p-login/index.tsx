@@ -1,10 +1,10 @@
 
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 
-interface LoginFormData {
+interface FormData {
   username: string;
   password: string;
   rememberMe: boolean;
@@ -13,430 +13,271 @@ interface LoginFormData {
 interface FormErrors {
   username: string;
   password: string;
-  login: string;
 }
 
-const LoginPage: React.FC = () => {
+export default function LoginPage() {
   const navigate = useNavigate();
+  const usernameInputRef = useRef<HTMLInputElement>(null);
   
-  // 表单数据状态
-  const [formData, setFormData] = useState<LoginFormData>({
+  const [formData, setFormData] = useState<FormData>({
     username: '',
     password: '',
     rememberMe: false
   });
-
-  // 表单错误状态
+  
   const [formErrors, setFormErrors] = useState<FormErrors>({
     username: '',
-    password: '',
-    login: ''
+    password: ''
   });
-
-  // UI状态
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [showLoginSuccess, setShowLoginSuccess] = useState(false);
 
   // 设置页面标题
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = '登录 - AI漫剧快造';
-    return () => {
-      document.title = originalTitle;
-    };
+    document.title = '登录 - AI漫剧速成工场';
+    return () => { document.title = originalTitle; };
   }, []);
 
-  // 页面加载时检查记住的用户
+  // 页面加载时聚焦到用户名输入框
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const rememberedUser = localStorage.getItem('rememberedUser');
-      if (rememberedUser) {
-        setFormData(prev => ({
-          ...prev,
-          username: rememberedUser,
-          rememberMe: true
-        }));
-      }
+    if (usernameInputRef.current) {
+      usernameInputRef.current.focus();
     }
   }, []);
 
-  // 邮箱格式验证
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  // 用户名验证函数
+  const validateUsername = (value: string): boolean => {
+    return value.trim().length >= 3;
   };
 
-  // 表单验证
-  const validateForm = (): boolean => {
-    let isValid = true;
-    const newErrors: FormErrors = { username: '', password: '', login: '' };
+  // 密码验证函数
+  const validatePassword = (value: string): boolean => {
+    return value.length >= 6;
+  };
 
-    // 验证用户名/邮箱
-    const username = formData.username.trim();
-    if (!username) {
-      newErrors.username = '请输入用户名或邮箱';
-      isValid = false;
-    } else if (username.includes('@') && !isValidEmail(username)) {
-      newErrors.username = '请输入有效的邮箱地址';
-      isValid = false;
-    }
-
-    // 验证密码
-    const password = formData.password.trim();
-    if (!password) {
-      newErrors.password = '请输入密码';
-      isValid = false;
-    } else if (password.length < 6) {
-      newErrors.password = '密码长度至少6位';
-      isValid = false;
-    }
-
-    setFormErrors(newErrors);
+  // 输入验证函数
+  const validateInput = (
+    field: keyof FormData,
+    value: string,
+    validator: (value: string) => boolean,
+    errorMessage: string
+  ): boolean => {
+    const isValid = validator(value);
+    setFormErrors(prev => ({
+      ...prev,
+      [field]: isValid ? '' : errorMessage
+    }));
     return isValid;
   };
 
   // 处理输入变化
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [field]: value
     }));
 
-    // 清除相关错误信息
-    if (name === 'username' || name === 'password') {
+    // 清除错误状态
+    if (typeof value === 'string' && formErrors[field as keyof FormErrors]) {
       setFormErrors(prev => ({
         ...prev,
-        [name]: '',
-        login: ''
+        [field]: ''
       }));
     }
   };
 
-  // 切换密码可见性
+  // 处理输入框失去焦点
+  const handleInputBlur = (field: keyof FormData) => {
+    const value = formData[field] as string;
+    if (field === 'username') {
+      validateInput(field, value, validateUsername, '用户名至少需要3个字符');
+    } else if (field === 'password') {
+      validateInput(field, value, validatePassword, '密码至少需要6个字符');
+    }
+  };
+
+  // 切换密码显示/隐藏
   const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
+    setShowPassword(!showPassword);
   };
 
   // 处理表单提交
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    // 验证所有字段
+    const isUsernameValid = validateInput('username', formData.username, validateUsername, '用户名至少需要3个字符');
+    const isPasswordValid = validateInput('password', formData.password, validatePassword, '密码至少需要6个字符');
 
-    setIsLoading(true);
-    setFormErrors(prev => ({ ...prev, login: '' }));
-    setShowLoginSuccess(false);
+    if (isUsernameValid && isPasswordValid) {
+      // 显示加载状态
+      setIsLoading(true);
 
-    try {
       // 模拟登录请求
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTimeout(() => {
+        // 登录成功，跳转到项目管理页
+        navigate('/project-manage');
+      }, 1500);
+    }
+  };
 
-      // 模拟登录成功（在实际应用中，这里会进行真实的API调用）
-      const { username, password, rememberMe } = formData;
-      
-      if (username.trim() && password.trim()) {
-        setShowLoginSuccess(true);
-        
-        // 记住密码功能
-        if (rememberMe && typeof window !== 'undefined') {
-          localStorage.setItem('rememberedUser', username.trim());
-        } else if (typeof window !== 'undefined') {
-          localStorage.removeItem('rememberedUser');
+  // 处理忘记密码
+  const handleForgotPassword = () => {
+    alert('忘记密码功能暂未开放，请联系管理员重置密码。');
+  };
+
+  // 处理键盘导航
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.target !== document.querySelector('button')) {
+      const activeElement = document.activeElement;
+      if (activeElement === usernameInputRef.current) {
+        const passwordInput = document.querySelector('#password') as HTMLInputElement;
+        if (passwordInput) {
+          passwordInput.focus();
         }
-        
-        // 2秒后跳转到项目管理页
-        setTimeout(() => {
-          navigate('/project-list');
-        }, 2000);
-      } else {
-        setFormErrors(prev => ({ ...prev, login: '用户名或密码错误，请重试' }));
+      } else if (activeElement?.id === 'password') {
+        handleFormSubmit(e as any);
       }
-    } catch (error) {
-      setFormErrors(prev => ({ ...prev, login: '登录失败，请稍后重试' }));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 处理忘记密码表单提交
-  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const email = forgotEmail.trim();
-    if (!email || !isValidEmail(email)) {
-      alert('请输入有效的邮箱地址');
-      return;
-    }
-    
-    // 模拟发送重置链接
-    alert('重置密码链接已发送到您的邮箱，请查收');
-    setShowForgotPasswordModal(false);
-    setForgotEmail('');
-  };
-
-  // 关闭忘记密码弹窗
-  const closeForgotPasswordModal = () => {
-    setShowForgotPasswordModal(false);
-    setForgotEmail('');
-  };
-
-  // 处理键盘事件
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Enter键触发登录
-      if (e.key === 'Enter' && document.activeElement?.tagName === 'INPUT') {
-        const activeElement = document.activeElement as HTMLInputElement;
-        if (activeElement.name === 'username' || activeElement.name === 'password') {
-          handleSubmit(e as any);
-        }
-      }
-      
-      // ESC键关闭弹窗
-      if (e.key === 'Escape' && showForgotPasswordModal) {
-        closeForgotPasswordModal();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showForgotPasswordModal]);
-
-  // 处理输入框焦点效果
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    const parentElement = e.target.parentElement;
-    if (parentElement) {
-      parentElement.classList.add('ring-2', 'ring-primary/20');
-    }
-  };
-
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const parentElement = e.target.parentElement;
-    if (parentElement) {
-      parentElement.classList.remove('ring-2', 'ring-primary/20');
     }
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      <div className="flex items-center justify-center min-h-screen px-4">
-        {/* 登录表单卡片 */}
-        <div className="w-full max-w-md">
-          {/* Logo和产品名称 */}
-          <div className="text-center mb-8">
-            <div className={`w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mx-auto mb-4 ${styles.logoGlow}`}>
-              <i className="fas fa-magic text-white text-2xl"></i>
+    <div className={styles.pageWrapper} onKeyDown={handleKeyDown}>
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        {/* 登录卡片 */}
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-login-card overflow-hidden">
+          {/* 卡片头部 */}
+          <div className="p-8 text-center border-b border-border-light">
+            <div className={`${styles.logoAnimation} mb-4`}>
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto">
+                <i className="fas fa-magic text-white text-2xl"></i>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">AI漫剧快造</h1>
-            <p className="text-white/80 text-sm">让AI助力您的漫剧创作梦想</p>
+            <h1 className="text-2xl font-bold text-text-primary mb-2">AI漫剧速成工场</h1>
+            <p className="text-text-secondary text-sm">专业的企业级AI漫剧制作平台</p>
           </div>
           
           {/* 登录表单 */}
-          <div className="bg-white rounded-2xl shadow-login p-8">
-            <h2 className="text-xl font-semibold text-text-primary mb-6 text-center">欢迎回来</h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 用户名/邮箱输入框 */}
+          <div className="p-8">
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              {/* 用户名输入 */}
               <div className="space-y-2">
                 <label htmlFor="username" className="block text-sm font-medium text-text-primary">
-                  用户名/邮箱
+                  用户名
                 </label>
                 <div className={styles.inputGroup}>
                   <i className={`fas fa-user ${styles.inputIcon}`}></i>
-                  <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
+                  <input
+                    type="text"
+                    id="username"
+                    ref={usernameInputRef}
                     value={formData.username}
-                    onChange={handleInputChange}
-                    onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
-                    className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus} ${styles.inputField}`}
-                    placeholder="请输入用户名或邮箱"
+                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    onBlur={() => handleInputBlur('username')}
+                    className={`w-full px-4 py-3 border rounded-lg ${styles.formInputFocus} ${styles.inputField} transition-all duration-200 ${
+                      formErrors.username ? 'border-danger' : 'border-border-light'
+                    }`}
+                    placeholder="请输入用户名"
                     required
                   />
                 </div>
-                {formErrors.username && (
-                  <div className={`${styles.errorMessage} ${styles.show}`}>
-                    {formErrors.username}
-                  </div>
-                )}
+                <div className={`${styles.errorMessage} ${formErrors.username ? styles.show : ''}`}>
+                  {formErrors.username}
+                </div>
               </div>
               
-              {/* 密码输入框 */}
+              {/* 密码输入 */}
               <div className="space-y-2">
                 <label htmlFor="password" className="block text-sm font-medium text-text-primary">
                   密码
                 </label>
                 <div className={styles.inputGroup}>
                   <i className={`fas fa-lock ${styles.inputIcon}`}></i>
-                  <input 
-                    type={isPasswordVisible ? 'text' : 'password'}
-                    id="password" 
-                    name="password" 
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
                     value={formData.password}
-                    onChange={handleInputChange}
-                    onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
-                    className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus} ${styles.inputField}`}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    onBlur={() => handleInputBlur('password')}
+                    className={`w-full px-4 py-3 border rounded-lg ${styles.formInputFocus} ${styles.inputField} transition-all duration-200 ${
+                      formErrors.password ? 'border-danger' : 'border-border-light'
+                    }`}
                     placeholder="请输入密码"
                     required
                   />
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={togglePasswordVisibility}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-text-primary"
                   >
-                    <i className={`fas ${isPasswordVisible ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                    <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                   </button>
                 </div>
-                {formErrors.password && (
-                  <div className={`${styles.errorMessage} ${styles.show}`}>
-                    {formErrors.password}
-                  </div>
-                )}
+                <div className={`${styles.errorMessage} ${formErrors.password ? styles.show : ''}`}>
+                  {formErrors.password}
+                </div>
               </div>
               
               {/* 记住密码和忘记密码 */}
               <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    name="rememberMe" 
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={formData.rememberMe}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-primary border-border-light rounded focus:ring-primary"
+                    onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
+                    className="rounded border-border-medium focus:ring-primary"
                   />
-                  <span className="ml-2 text-sm text-text-secondary">记住密码</span>
+                  <span className="text-sm text-text-secondary">记住密码</span>
                 </label>
                 <button
                   type="button"
-                  onClick={() => setShowForgotPasswordModal(true)}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-primary hover:text-blue-600 transition-colors"
                 >
                   忘记密码？
                 </button>
               </div>
               
               {/* 登录按钮 */}
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isLoading}
-                className={`w-full bg-primary text-white py-3 px-4 rounded-lg font-medium ${styles.btnPrimaryHover} transition-all duration-200`}
+                className={`w-full py-3 bg-primary text-white rounded-lg font-medium ${styles.btnPrimaryHover} transition-all duration-200`}
               >
-                <span>{isLoading ? '登录中...' : '登录'}</span>
-                {isLoading && <i className="fas fa-spinner fa-spin ml-2"></i>}
+                {isLoading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>登录中...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-sign-in-alt mr-2"></i>登录
+                  </>
+                )}
               </button>
               
-              {/* 登录状态消息 */}
+              {/* 注册链接 */}
               <div className="text-center">
-                {formErrors.login && (
-                  <div className={`${styles.errorMessage} ${styles.show}`}>
-                    {formErrors.login}
-                  </div>
-                )}
-                {showLoginSuccess && (
-                  <div className={`${styles.successMessage} ${styles.show}`}>
-                    登录成功，正在跳转...
-                  </div>
-                )}
-              </div>
-            </form>
-            
-            {/* 注册链接 */}
-            <div className="mt-6 text-center">
-              <p className="text-text-secondary text-sm">
-                还没有账号？
-                <Link 
+                <span className="text-text-secondary text-sm">还没有账号？</span>
+                <Link
                   to="/register"
-                  className="text-primary hover:text-primary/80 font-medium transition-colors ml-1"
+                  className="text-sm text-primary hover:text-blue-600 font-medium transition-colors ml-1"
                 >
                   立即注册
                 </Link>
-              </p>
-            </div>
-          </div>
-          
-          {/* 底部版权信息 */}
-          <div className="text-center mt-8">
-            <p className="text-white/60 text-sm">
-              © 2024 AI漫剧快造. 保留所有权利.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 忘记密码弹窗 */}
-      {showForgotPasswordModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              closeForgotPasswordModal();
-            }
-          }}
-        >
-          <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-text-primary">重置密码</h3>
-                  <button 
-                    type="button"
-                    onClick={closeForgotPasswordModal}
-                    className="text-text-secondary hover:text-text-primary"
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-                
-                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="forgot-email" className="block text-sm font-medium text-text-primary mb-2">
-                      邮箱地址
-                    </label>
-                    <input 
-                      type="email" 
-                      id="forgot-email" 
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                      className={`w-full px-3 py-2 border border-border-light rounded-lg ${styles.formInputFocus}`}
-                      placeholder="请输入您的邮箱地址" 
-                      required
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-end space-x-3 pt-4">
-                    <button 
-                      type="button" 
-                      onClick={closeForgotPasswordModal}
-                      className="px-4 py-2 border border-border-light rounded-lg text-text-secondary hover:border-primary hover:text-primary"
-                    >
-                      取消
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                    >
-                      发送重置链接
-                    </button>
-                  </div>
-                </form>
               </div>
-            </div>
+            </form>
           </div>
         </div>
-      )}
+        
+        {/* 装饰元素 */}
+        <div className="absolute top-10 left-10 w-20 h-20 bg-white bg-opacity-20 rounded-full blur-xl"></div>
+        <div className="absolute bottom-10 right-10 w-32 h-32 bg-white bg-opacity-10 rounded-full blur-xl"></div>
+        <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-white bg-opacity-15 rounded-full blur-lg"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-white bg-opacity-10 rounded-full blur-lg"></div>
+      </div>
     </div>
   );
-};
-
-export default LoginPage;
+}
 

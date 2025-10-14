@@ -1,0 +1,114 @@
+
+
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+.sidebarCollapsed {
+  width: 56px;
+}
+
+.sidebarExpanded {
+  width: 240px;
+}
+
+.mainContentExpanded {
+  margin-left: 240px;
+}
+
+.mainContentCollapsed {
+  margin-left: 56px;
+}
+
+.tableRowHover:hover {
+  background-color: #F8FAFC;
+}
+
+.typeBadge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.typeImage {
+  background-color: #E0E7FF;
+  color: #3730A3;
+}
+
+.typeAudio {
+  background-color: #C7D2FE;
+  color: #5B21B6;
+}
+
+.typeVideo {
+  background-color: #DDD6FE;
+  color: #7C3AED;
+}
+
+.subtypeBadge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.subtypeCharacter {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.subtypeScene {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.subtypeBgm {
+  background-color: #FDF2F8;
+  color: #BE185D;
+}
+
+.subtypeVoice {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.subtypeEffect {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.tabActive {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.tabInactive {
+  background-color: #F1F5F9;
+  color: #6B7280;
+}
+
+.tabInactive:hover {
+  background-color: #E2E8F0;
+  color: #374151;
+}
+
+.assetPreview {
+  max-width: 60px;
+  max-height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.audioPlayer {
+  width: 100px;
+  height: 24px;
+}
+
+.videoPreview {
+  max-width: 60px;
+  max-height: 40px;
+  border-radius: 4px;
+}
+
