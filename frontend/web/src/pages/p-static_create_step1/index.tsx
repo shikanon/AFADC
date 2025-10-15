@@ -14,6 +14,17 @@ interface FormData {
   videoResolution: string;
 }
 
+interface Asset {
+  id: string;
+  name: string;
+  type: string;
+  subtype: string;
+  url: string;
+  tags: string[];
+  uploader: string;
+  uploadTime: string;
+}
+
 const StaticCreateStep1: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -28,6 +39,13 @@ const StaticCreateStep1: React.FC = () => {
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [showUploadedImage, setShowUploadedImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // 新增状态：图片选择模式
+  const [imageSelectionMode, setImageSelectionMode] = useState<'upload' | 'asset'>('upload');
+  // 新增状态：资产选择对话框
+  const [showAssetDialog, setShowAssetDialog] = useState(false);
+  // 新增状态：选中的资产图片
+  const [selectedAssetImage, setSelectedAssetImage] = useState<Asset | null>(null);
 
   useEffect(() => {
     const originalTitle = document.title;
@@ -68,6 +86,10 @@ const StaticCreateStep1: React.FC = () => {
         const result = e.target?.result as string;
         setUploadedImage(result);
         setShowUploadedImage(true);
+        // 切换到本地上传模式
+        setImageSelectionMode('upload');
+        // 清除资产选择
+        setSelectedAssetImage(null);
       };
       reader.readAsDataURL(file);
     }
@@ -76,10 +98,97 @@ const StaticCreateStep1: React.FC = () => {
   const handleRemoveImage = () => {
     setUploadedImage('');
     setShowUploadedImage(false);
+    setSelectedAssetImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  // 新增：处理图片选择模式切换
+  const handleImageModeChange = (mode: 'upload' | 'asset') => {
+    setImageSelectionMode(mode);
+  };
+
+  // 新增：打开资产选择对话框
+  const handleOpenAssetDialog = () => {
+    setShowAssetDialog(true);
+  };
+
+  // 新增：关闭资产选择对话框
+  const handleCloseAssetDialog = () => {
+    setShowAssetDialog(false);
+  };
+
+  // 新增：处理资产选择
+  const handleAssetSelect = (asset: Asset) => {
+    setSelectedAssetImage(asset);
+    setShowAssetDialog(false);
+    // 清除本地上传
+    setUploadedImage('');
+    setShowUploadedImage(false);
+  };
+
+  // 新增：移除选中的资产图片
+  const handleRemoveAssetImage = () => {
+    setSelectedAssetImage(null);
+  };
+
+  // 新增：模拟资产数据
+  const mockAssets: Asset[] = [
+    {
+      id: 'asset-001',
+      name: '魔法少女立绘',
+      type: 'image',
+      subtype: 'character',
+      url: 'https://s.coze.cn/image/RZUHCmZ3Yf4/',
+      tags: ['魔法', '少女', '立绘'],
+      uploader: '张设计师',
+      uploadTime: '2024-01-15'
+    },
+    {
+      id: 'asset-002',
+      name: '未来都市背景',
+      type: 'image',
+      subtype: 'scene',
+      url: 'https://s.coze.cn/image/fS5ZZ8SEQ7c/',
+      tags: ['未来', '都市', '背景'],
+      uploader: '李动画师',
+      uploadTime: '2024-01-14'
+    },
+    {
+      id: 'asset-003',
+      name: '温馨教室场景',
+      type: 'image',
+      subtype: 'scene',
+      url: 'https://s.coze.cn/image/7608UVkB9ho/',
+      tags: ['教室', '温馨', '场景'],
+      uploader: '王美术',
+      uploadTime: '2024-01-13'
+    },
+    {
+      id: 'asset-004',
+      name: '动漫角色设计',
+      type: 'image',
+      subtype: 'character',
+      url: 'https://s.coze.cn/image/3U0w1HOeG4s/',
+      tags: ['动漫', '角色', '设计'],
+      uploader: '赵画师',
+      uploadTime: '2024-01-12'
+    }
+  ];
+
+  // 新增：资产搜索状态
+  const [assetSearchTerm, setAssetSearchTerm] = useState('');
+  const [filteredAssets, setFilteredAssets] = useState<Asset[]>(mockAssets);
+
+  // 新增：处理资产搜索
+  useEffect(() => {
+    const filtered = mockAssets.filter(asset => 
+      asset.name.toLowerCase().includes(assetSearchTerm.toLowerCase()) ||
+      asset.tags.some(tag => tag.toLowerCase().includes(assetSearchTerm.toLowerCase()))
+    );
+    setFilteredAssets(filtered);
+  }, [assetSearchTerm]);
 
   const validateForm = (): boolean => {
     if (!formData.projectName.trim()) {
@@ -319,36 +428,133 @@ const StaticCreateStep1: React.FC = () => {
                           <p className="text-sm text-text-secondary mb-3">上传参考图片来定义画风风格</p>
                           {formData.styleChoice === 'image' && (
                             <div>
-                              {!showUploadedImage ? (
-                                <div 
-                                  onClick={() => fileInputRef.current?.click()}
-                                  className="border-2 border-dashed border-border-light rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
+                              {/* 图片选择模式切换 */}
+                              <div className="flex mb-4 bg-gray-100 rounded-lg p-1">
+                                <button
+                                  type="button"
+                                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 ${
+                                    imageSelectionMode === 'upload'
+                                      ? 'bg-primary text-white shadow-sm'
+                                      : 'text-gray-600 hover:text-gray-800'
+                                  }`}
+                                  onClick={() => handleImageModeChange('upload')}
                                 >
-                                  <i className="fas fa-cloud-upload-alt text-3xl text-text-secondary mb-2"></i>
-                                  <p className="text-sm text-text-secondary mb-1">点击上传参考图片</p>
-                                  <p className="text-xs text-text-secondary">支持 JPG、PNG 格式，最大 10MB</p>
-                                  <input 
-                                    type="file" 
-                                    ref={fileInputRef}
-                                    onChange={handleFileUpload}
-                                    accept="image/*" 
-                                    className="hidden"
-                                  />
+                                  本地上传
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 ${
+                                    imageSelectionMode === 'asset'
+                                      ? 'bg-primary text-white shadow-sm'
+                                      : 'text-gray-600 hover:text-gray-800'
+                                  }`}
+                                  onClick={() => handleImageModeChange('asset')}
+                                >
+                                  资产管理选择
+                                </button>
+                              </div>
+
+                              {/* 本地上传模式 */}
+                              {imageSelectionMode === 'upload' && (
+                                <div className={`transition-opacity duration-300 ${imageSelectionMode === 'upload' ? 'opacity-100' : 'opacity-0 absolute'}`}>
+                                  {!showUploadedImage ? (
+                                    <div 
+                                      onClick={() => fileInputRef.current?.click()}
+                                      className="border-2 border-dashed border-border-light rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
+                                    >
+                                      <i className="fas fa-cloud-upload-alt text-3xl text-text-secondary mb-2"></i>
+                                      <p className="text-sm text-text-secondary mb-1">点击上传参考图片</p>
+                                      <p className="text-xs text-text-secondary">支持 JPG、PNG 格式，最大 10MB</p>
+                                      <input 
+                                        type="file" 
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                        accept="image/*" 
+                                        className="hidden"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="mt-3">
+                                      <img 
+                                        src={uploadedImage} 
+                                        alt="参考图片预览" 
+                                        className="w-32 h-32 rounded-lg object-cover"
+                                      />
+                                      <button 
+                                        type="button" 
+                                        onClick={handleRemoveImage}
+                                        className="mt-2 text-danger text-sm hover:underline"
+                                      >
+                                        移除图片
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="mt-3">
-                                  <img 
-                                    src={uploadedImage} 
-                                    alt="参考图片预览" 
-                                    className="w-32 h-32 rounded-lg object-cover"
-                                  />
-                                  <button 
-                                    type="button" 
-                                    onClick={handleRemoveImage}
-                                    className="mt-2 text-danger text-sm hover:underline"
-                                  >
-                                    移除图片
-                                  </button>
+                              )}
+
+                              {/* 资产管理选择模式 */}
+                              {imageSelectionMode === 'asset' && (
+                                <div className={`transition-opacity duration-300 ${imageSelectionMode === 'asset' ? 'opacity-100' : 'opacity-0 absolute'}`}>
+                                  {!selectedAssetImage ? (
+                                    <div>
+                                      {/* 搜索栏 */}
+                                      <div className="relative mb-4">
+                                        <input
+                                          type="text"
+                                          value={assetSearchTerm}
+                                          onChange={(e) => setAssetSearchTerm(e.target.value)}
+                                          placeholder="搜索资产中的图片..."
+                                          className="w-full px-4 py-2 pl-10 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                        />
+                                        <i className="fas fa-search absolute left-3 top-3 text-text-secondary"></i>
+                                      </div>
+                                      
+                                      {/* 资产图片预览 */}
+                                      <div className="grid grid-cols-3 gap-2 mb-4 max-h-40 overflow-y-auto">
+                                        {filteredAssets.slice(0, 6).map(asset => (
+                                          <div
+                                            key={asset.id}
+                                            className="relative group cursor-pointer"
+                                            onClick={() => handleAssetSelect(asset)}
+                                          >
+                                            <img
+                                              src={asset.url}
+                                              alt={asset.name}
+                                              className="w-full h-24 object-cover rounded-lg border border-border-light hover:border-primary transition-colors"
+                                            />
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                              <i className="fas fa-check text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      
+                                      {/* 选择更多按钮 */}
+                                      <button
+                                        type="button"
+                                        onClick={handleOpenAssetDialog}
+                                        className="w-full py-2 px-4 bg-bg-secondary text-text-primary rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                                      >
+                                        <i className="fas fa-folder-open mr-2"></i>从资产库选择更多图片
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="mt-3">
+                                      <img 
+                                        src={selectedAssetImage.url} 
+                                        alt={selectedAssetImage.name} 
+                                        className="w-32 h-32 rounded-lg object-cover"
+                                      />
+                                      <p className="text-sm text-text-primary mt-2">{selectedAssetImage.name}</p>
+                                      <button 
+                                        type="button" 
+                                        onClick={handleRemoveAssetImage}
+                                        className="mt-2 text-danger text-sm hover:underline"
+                                      >
+                                        移除图片
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -429,6 +635,103 @@ const StaticCreateStep1: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {/* 资产选择对话框 */}
+      {showAssetDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-modal w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* 对话框头部 */}
+            <div className="flex items-center justify-between p-6 border-b border-border-light">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <i className="fas fa-image text-white text-sm"></i>
+                </div>
+                <h2 className="text-xl font-semibold text-text-primary">选择参考图片</h2>
+              </div>
+              <button 
+                onClick={handleCloseAssetDialog}
+                className="p-2 rounded-lg hover:bg-bg-secondary transition-colors"
+              >
+                <i className="fas fa-times text-text-secondary"></i>
+              </button>
+            </div>
+
+            {/* 搜索和筛选区域 */}
+            <div className="p-6 border-b border-border-light">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                {/* 搜索框 */}
+                <div className="flex-1 lg:max-w-md">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={assetSearchTerm}
+                      onChange={(e) => setAssetSearchTerm(e.target.value)}
+                      placeholder="搜索资产中的图片..."
+                      className="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <i className="fas fa-search absolute left-3 top-3 text-text-secondary"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 资产列表区域 */}
+            <div className="flex-1 overflow-hidden">
+              <div className="p-6 h-full overflow-y-auto">
+                {/* 资产网格 */}
+                {filteredAssets.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {filteredAssets.map(asset => (
+                      <div
+                        key={asset.id}
+                        className="bg-white rounded-lg border border-border-light p-3 relative cursor-pointer hover:shadow-md transition-all duration-200"
+                        onClick={() => handleAssetSelect(asset)}
+                      >
+                        <div className="relative mb-3 overflow-hidden rounded-lg">
+                          <img
+                            src={asset.url}
+                            alt={asset.name}
+                            className="w-full h-32 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                            <i className="fas fa-check text-white opacity-0 hover:opacity-100 transition-opacity duration-200"></i>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-medium text-text-primary truncate" title={asset.name}>
+                            {asset.name}
+                          </h3>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-text-secondary">{asset.uploader}</span>
+                            <span className="text-xs text-text-secondary">{asset.uploadTime}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* 无结果提示 */
+                  <div className="text-center py-12">
+                    <i className="fas fa-search text-4xl text-text-secondary mb-4"></i>
+                    <h3 className="text-lg font-medium text-text-primary mb-2">未找到匹配的资产</h3>
+                    <p className="text-text-secondary">请尝试调整搜索关键词</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 对话框底部操作按钮 */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-border-light bg-bg-secondary">
+              <button 
+                onClick={handleCloseAssetDialog}
+                className="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-white transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

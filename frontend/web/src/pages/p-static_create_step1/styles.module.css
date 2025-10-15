@@ -90,3 +90,219 @@
   border-radius: 50%;
 }
 
+/* 图片选择模式切换按钮样式 */
+.imageModeToggle {
+  display: flex;
+  background-color: #F3F4F6;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.imageModeButton {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.imageModeButtonActive {
+  background-color: #3B82F6;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.imageModeButtonInactive {
+  color: #6B7280;
+}
+
+.imageModeButtonInactive:hover {
+  color: #374151;
+}
+
+/* 图片预览网格样式 */
+.imagePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.imagePreviewItem {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.imagePreviewItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.imagePreviewItem img {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  transition: border-color 0.2s ease;
+}
+
+.imagePreviewItem:hover img {
+  border-color: #3B82F6;
+}
+
+.imagePreviewOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+}
+
+.imagePreviewItem:hover .imagePreviewOverlay {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.imagePreviewCheck {
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.imagePreviewItem:hover .imagePreviewCheck {
+  opacity: 1;
+}
+
+/* 资产选择对话框样式 */
+.assetDialogBackdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.assetDialogCard {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 1024px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.assetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .assetGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .assetGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .assetGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.assetCard {
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  padding: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.assetCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+}
+
+.assetPreview {
+  position: relative;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.assetPreview img {
+  width: 100%;
+  height: 128px;
+  object-fit: cover;
+}
+
+.assetOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.assetCard:hover .assetOverlay {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.assetCheck {
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.assetCard:hover .assetCheck {
+  opacity: 1;
+}
+
+/* 模式切换动画 */
+.modeTransition {
+  transition: opacity 0.3s ease;
+}
+
+.modeEnter {
+  opacity: 0;
+}
+
+.modeEnterActive {
+  opacity: 1;
+}
+
+.modeExit {
+  opacity: 1;
+}
+
+.modeExitActive {
+  opacity: 0;
+}
+
