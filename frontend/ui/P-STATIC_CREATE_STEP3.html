@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI静态漫制作 - 创建章节，生成分镜画面 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .step-indicator {
+            position: relative;
+        }
+        
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 12px;
+            width: 2px;
+            height: calc(100% - 40px);
+            background-color: #E2E8F0;
+        }
+        
+        .step-item {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-item.active::before {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+        }
+        
+        .step-item.completed::before {
+            background-color: #22C55E;
+            border-color: #22C55E;
+        }
+        
+        .step-item::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #E2E8F0;
+            border-radius: 50%;
+            background-color: white;
+        }
+        
+        .step-item.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 14px;
+            left: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .storyboard-card {
+            transition: all 0.3s ease;
+        }
+        
+        .storyboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .drag-handle {
+            cursor: grab;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .character-tag {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bars text-text-secondary"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-magic text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-text-primary">AI漫剧速成工场</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框 -->
+            <div class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <input type="text" id="global-search" placeholder="搜索项目、资产..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：通知和用户 -->
+            <div class="flex items-center space-x-4">
+                <button id="notification-btn" class="relative p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bell text-text-secondary"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/nGvY97ApNmc/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                    <span class="text-sm font-medium text-text-primary">张设计师</span>
+                    <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 bg-white border-r border-border-light sidebar-expanded transition-all duration-300 z-40">
+        <nav class="p-4 space-y-2">
+            <a href="#" id="nav-projects" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-white">
+                <i class="fas fa-folder text-lg"></i>
+                <span class="sidebar-text">项目管理</span>
+            </a>
+            <a href="#" id="nav-assets" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-images text-lg"></i>
+                <span class="sidebar-text">资产管理</span>
+            </a>
+            <a href="#" id="nav-users" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-users text-lg"></i>
+                <span class="sidebar-text">用户管理</span>
+            </a>
+            <a href="#" id="nav-plans" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-crown text-lg"></i>
+                <span class="sidebar-text">套餐管理</span>
+            </a>
+            <a href="#" id="nav-api-keys" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-key text-lg"></i>
+                <span class="sidebar-text">API密钥设置</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6">
+            <!-- 页面头部 -->
+            <div id="page-header" class="flex items-center justify-between mb-6">
+                <div>
+                    <nav class="text-sm text-text-secondary mb-2">
+                        <span>首页</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span>项目管理</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span class="text-text-primary">AI静态漫制作</span>
+                    </nav>
+                    <h2 class="text-2xl font-semibold text-text-primary">AI静态漫制作 - 创建章节，生成分镜画面</h2>
+                </div>
+            </div>
+
+            <!-- 步骤指示器 -->
+            <div id="step-indicator" class="flex items-start space-x-6 mb-8">
+                <div class="step-indicator flex-1">
+                    <div class="step-item completed mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-primary">基础信息设置</div>
+                            <div class="text-sm text-text-secondary">设置剧本名称、画风等</div>
+                        </div>
+                    </div>
+                    <div class="step-item completed mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-primary">确认角色</div>
+                            <div class="text-sm text-text-secondary">创建或选择角色IP</div>
+                        </div>
+                    </div>
+                    <div class="step-item active mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-primary">创建章节，生成分镜画面</div>
+                            <div class="text-sm text-text-secondary">拆分剧本，生成画面</div>
+                        </div>
+                    </div>
+                    <div class="step-item mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-secondary">合成最终视频</div>
+                            <div class="text-sm text-text-secondary">配置并生成视频</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 章节输入区 -->
+            <div id="chapter-input-section" class="bg-white rounded-lg border border-border-light p-6 mb-6">
+                <h3 class="text-lg font-semibold text-text-primary mb-4">章节内容</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="chapter-title" class="block text-sm font-medium text-text-primary mb-2">章节标题</label>
+                        <input type="text" id="chapter-title" value="第一章：魔法学院的第一天" 
+                               class="w-full px-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="chapter-content" class="block text-sm font-medium text-text-primary mb-2">章节内容</label>
+                        <textarea id="chapter-content" rows="6" 
+                                  class="w-full px-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                                  placeholder="请输入章节的详细内容...">在一个阳光明媚的早晨，莉莉亚怀着激动的心情来到了魔法学院。这是她梦寐以求的地方，传说中这里培养了无数优秀的魔法师。学院的建筑宏伟壮观，充满了神秘的气息。莉莉亚遇到了她的第一个朋友艾米，两人很快就成为了好朋友。她们一起参观了学院的各个角落，对未来的学习生活充满了期待。</textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button id="ai-split-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-magic mr-2"></i>AI拆书
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分镜列表 -->
+            <div id="storyboard-section" class="bg-white rounded-lg border border-border-light p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-text-primary">分镜列表</h3>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-text-secondary">共 <span id="storyboard-count">4</span> 个分镜</span>
+                        <button id="batch-generate-btn" class="px-4 py-2 bg-tertiary text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-play mr-2"></i>批量生成分镜画面
+                        </button>
+                    </div>
+                </div>
+
+                <div id="storyboard-list" class="space-y-4">
+                    <!-- 分镜1 -->
+                    <div class="storyboard-card bg-bg-secondary rounded-lg p-4 border border-border-light" data-storyboard-id="sb-001">
+                        <div class="flex items-start space-x-4">
+                            <!-- 拖拽手柄 -->
+                            <div class="drag-handle flex flex-col justify-center space-y-1">
+                                <i class="fas fa-grip-vertical text-text-secondary"></i>
+                            </div>
+                            
+                            <!-- 分镜信息 -->
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-text-primary">分镜 #1</span>
+                                        <span class="text-xs text-text-secondary">ID: SB-001</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="add-character-btn text-primary hover:text-blue-600 text-sm" title="添加角色">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                        <button class="edit-storyboard-btn text-text-secondary hover:text-text-primary text-sm" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-storyboard-btn text-danger hover:text-red-600 text-sm" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 关联角色 -->
+                                <div class="mb-3">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="text-sm font-medium text-text-primary">关联角色:</span>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="character-tag">莉莉亚</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 分镜脚本 -->
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-text-primary mb-2">分镜脚本</label>
+                                    <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">阳光明媚的早晨，莉莉亚站在魔法学院的大门前，眼中闪烁着激动的光芒。学院的建筑宏伟壮观，充满了神秘的气息。</textarea>
+                                </div>
+                                
+                                <!-- 画面预览 -->
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">画面预览</label>
+                                        <div class="relative">
+                                            <img src="https://s.coze.cn/image/hXT9hwKARBE/" 
+                                                 alt="分镜画面预览" class="w-32 h-20 rounded-lg object-cover border border-border-light" data-category="艺术">
+                                            <div class="absolute top-1 right-1">
+                                                <button class="replace-image-btn w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                                                    <i class="fas fa-exchange-alt text-xs text-text-secondary"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
+                                        <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">阳光明媚的早晨，魔法学院大门前，一个年轻的女孩站在那里，眼中充满期待，建筑宏伟壮观，神秘的魔法氛围</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分镜2 -->
+                    <div class="storyboard-card bg-bg-secondary rounded-lg p-4 border border-border-light" data-storyboard-id="sb-002">
+                        <div class="flex items-start space-x-4">
+                            <div class="drag-handle flex flex-col justify-center space-y-1">
+                                <i class="fas fa-grip-vertical text-text-secondary"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-text-primary">分镜 #2</span>
+                                        <span class="text-xs text-text-secondary">ID: SB-002</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="add-character-btn text-primary hover:text-blue-600 text-sm" title="添加角色">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                        <button class="edit-storyboard-btn text-text-secondary hover:text-text-primary text-sm" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-storyboard-btn text-danger hover:text-red-600 text-sm" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="text-sm font-medium text-text-primary">关联角色:</span>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="character-tag">莉莉亚</span>
+                                            <span class="character-tag">艾米</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-text-primary mb-2">分镜脚本</label>
+                                    <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">莉莉亚走进学院，遇到了同样是新生的艾米。两个女孩很快就聊了起来，发现彼此有很多共同的兴趣爱好。</textarea>
+                                </div>
+                                
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">画面预览</label>
+                                        <div class="relative">
+                                            <img src="https://s.coze.cn/image/TwWQkCHpzu0/" 
+                                                 alt="分镜画面预览" class="w-32 h-20 rounded-lg object-cover border border-border-light" data-category="艺术">
+                                            <div class="absolute top-1 right-1">
+                                                <button class="replace-image-btn w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                                                    <i class="fas fa-exchange-alt text-xs text-text-secondary"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
+                                        <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">学院走廊里，两个年轻女孩在交谈，表情友好，背景是魔法学院的内部装饰</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分镜3 -->
+                    <div class="storyboard-card bg-bg-secondary rounded-lg p-4 border border-border-light" data-storyboard-id="sb-003">
+                        <div class="flex items-start space-x-4">
+                            <div class="drag-handle flex flex-col justify-center space-y-1">
+                                <i class="fas fa-grip-vertical text-text-secondary"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-text-primary">分镜 #3</span>
+                                        <span class="text-xs text-text-secondary">ID: SB-003</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="add-character-btn text-primary hover:text-blue-600 text-sm" title="添加角色">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                        <button class="edit-storyboard-btn text-text-secondary hover:text-text-primary text-sm" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-storyboard-btn text-danger hover:text-red-600 text-sm" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="text-sm font-medium text-text-primary">关联角色:</span>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="character-tag">莉莉亚</span>
+                                            <span class="character-tag">艾米</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-text-primary mb-2">分镜脚本</label>
+                                    <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">艾米热情地带着莉莉亚参观学院的各个设施，包括图书馆、魔法练习室和餐厅。莉莉亚对这里的一切都感到新奇。</textarea>
+                                </div>
+                                
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">画面预览</label>
+                                        <div class="relative">
+                                            <img src="https://s.coze.cn/image/5xjn0yDZY4Q/" 
+                                                 alt="分镜画面预览" class="w-32 h-20 rounded-lg object-cover border border-border-light" data-category="艺术">
+                                            <div class="absolute top-1 right-1">
+                                                <button class="replace-image-btn w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                                                    <i class="fas fa-exchange-alt text-xs text-text-secondary"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
+                                        <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">两个女孩在魔法学院的走廊里行走，背景是图书馆的大门，充满知识的氛围</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分镜4 -->
+                    <div class="storyboard-card bg-bg-secondary rounded-lg p-4 border border-border-light" data-storyboard-id="sb-004">
+                        <div class="flex items-start space-x-4">
+                            <div class="drag-handle flex flex-col justify-center space-y-1">
+                                <i class="fas fa-grip-vertical text-text-secondary"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-text-primary">分镜 #4</span>
+                                        <span class="text-xs text-text-secondary">ID: SB-004</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="add-character-btn text-primary hover:text-blue-600 text-sm" title="添加角色">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                        <button class="edit-storyboard-btn text-text-secondary hover:text-text-primary text-sm" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-storyboard-btn text-danger hover:text-red-600 text-sm" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="text-sm font-medium text-text-primary">关联角色:</span>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="character-tag">莉莉亚</span>
+                                            <span class="character-tag">艾米</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-text-primary mb-2">分镜脚本</label>
+                                    <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">参观结束后，莉莉亚和艾米坐在学院的花园里，畅谈着未来的梦想和期望。夕阳的余晖洒在她们身上，为这美好的第一天画上了完美的句号。</textarea>
+                                </div>
+                                
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">画面预览</label>
+                                        <div class="relative">
+                                            <img src="https://s.coze.cn/image/dDJ1MTK9Gr0/" 
+                                                 alt="分镜画面预览" class="w-32 h-20 rounded-lg object-cover border border-border-light" data-category="艺术">
+                                            <div class="absolute top-1 right-1">
+                                                <button class="replace-image-btn w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                                                    <i class="fas fa-exchange-alt text-xs text-text-secondary"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
+                                        <textarea class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" rows="3">学院花园里，两个女孩坐在长椅上交谈，夕阳西下，温暖的光线洒在她们身上，充满希望的氛围</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div id="action-buttons" class="flex items-center justify-between">
+                <div class="text-sm text-text-secondary">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    提示：您可以拖拽分镜卡片调整顺序，点击编辑按钮进行详细编辑
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="prev-step-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>上一步
+                    </button>
+                    <button id="save-draft-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                        <i class="fas fa-save mr-2"></i>保存草稿
+                    </button>
+                    <button id="next-step-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        下一步<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏折叠功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 导航菜单点击事件
+            document.querySelector('#nav-projects').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PROJECT_MANAGE.html';
+            });
+
+            document.querySelector('#nav-assets').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-ASSET_MANAGE.html';
+            });
+
+            document.querySelector('#nav-users').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-USER_MANAGE.html';
+            });
+
+            document.querySelector('#nav-plans').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PLAN_MANAGE.html';
+            });
+
+            document.querySelector('#nav-api-keys').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-API_KEY_SETTING.html';
+            });
+
+            // AI拆书功能
+            document.querySelector('#ai-split-btn').addEventListener('click', function() {
+                console.log('调用AI拆书功能');
+                // 这里应该调用AI拆书API，现在只是模拟
+                alert('AI拆书功能正在处理中...');
+            });
+
+            // 批量生成分镜画面
+            document.querySelector('#batch-generate-btn').addEventListener('click', function() {
+                console.log('批量生成分镜画面');
+                // 这里应该调用批量生成API，现在只是模拟
+                alert('正在批量生成分镜画面，请稍候...');
+            });
+
+            // 分镜编辑按钮
+            document.querySelectorAll('.edit-storyboard-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const storyboardId = this.closest('.storyboard-card').dataset.storyboardId;
+                    console.log('打开分镜编辑弹窗，分镜ID:', storyboardId);
+                    // 这里应该打开图片编辑弹窗，现在只是模拟
+                    alert('打开分镜编辑弹窗');
+                });
+            });
+
+            // 添加角色按钮
+            document.querySelectorAll('.add-character-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const storyboardId = this.closest('.storyboard-card').dataset.storyboardId;
+                    console.log('添加角色到分镜，分镜ID:', storyboardId);
+                    // 这里应该打开角色选择弹窗，现在只是模拟
+                    alert('打开角色选择弹窗');
+                });
+            });
+
+            // 删除分镜按钮
+            document.querySelectorAll('.delete-storyboard-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const storyboardId = this.closest('.storyboard-card').dataset.storyboardId;
+                    console.log('删除分镜，分镜ID:', storyboardId);
+                    // 这里应该打开确认对话框，现在只是模拟
+                    if (confirm('确定要删除这个分镜吗？')) {
+                        this.closest('.storyboard-card').remove();
+                        updateStoryboardCount();
+                    }
+                });
+            });
+
+            // 替换图片按钮
+            document.querySelectorAll('.replace-image-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const storyboardId = this.closest('.storyboard-card').dataset.storyboardId;
+                    console.log('替换分镜图片，分镜ID:', storyboardId);
+                    // 这里应该打开资产选择弹窗，现在只是模拟
+                    alert('打开资产选择弹窗');
+                });
+            });
+
+            // 更新分镜数量
+            function updateStoryboardCount() {
+                const count = document.querySelectorAll('.storyboard-card').length;
+                document.querySelector('#storyboard-count').textContent = count;
+            }
+
+            // 拖拽功能（简化版）
+            let draggedElement = null;
+
+            document.querySelectorAll('.storyboard-card').forEach(card => {
+                card.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.style.opacity = '0.5';
+                });
+
+                card.addEventListener('dragend', function(e) {
+                    this.style.opacity = '1';
+                });
+
+                card.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                });
+
+                card.addEventListener('dragenter', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#3B82F6';
+                });
+
+                card.addEventListener('dragleave', function(e) {
+                    this.style.borderColor = '#E2E8F0';
+                });
+
+                card.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#E2E8F0';
+                    
+                    if (draggedElement && draggedElement !== this) {
+                        const container = document.querySelector('#storyboard-list');
+                        const cards = Array.from(container.children);
+                        const draggedIndex = cards.indexOf(draggedElement);
+                        const targetIndex = cards.indexOf(this);
+                        
+                        if (draggedIndex < targetIndex) {
+                            container.insertBefore(draggedElement, this.nextSibling);
+                        } else {
+                            container.insertBefore(draggedElement, this);
+                        }
+                        
+                        updateStoryboardNumbers();
+                    }
+                });
+            });
+
+            // 更新分镜编号
+            function updateStoryboardNumbers() {
+                document.querySelectorAll('.storyboard-card').forEach((card, index) => {
+                    const numberSpan = card.querySelector('.text-sm.font-medium.text-text-primary');
+                    if (numberSpan && numberSpan.textContent.includes('分镜 #')) {
+                        numberSpan.textContent = `分镜 #${index + 1}`;
+                    }
+                });
+            }
+
+            // 操作按钮事件
+            document.querySelector('#prev-step-btn').addEventListener('click', function() {
+                // 获取URL参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('projectId') || 'default';
+                window.location.href = `P-STATIC_CREATE_STEP2.html?projectId=${projectId}`;
+            });
+
+            document.querySelector('#save-draft-btn').addEventListener('click', function() {
+                console.log('保存草稿');
+                // 获取URL参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('projectId') || 'default';
+                window.location.href = `P-PROJECT_MANAGE.html?projectId=${projectId}`;
+            });
+
+            document.querySelector('#next-step-btn').addEventListener('click', function() {
+                // 获取URL参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('projectId') || 'default';
+                window.location.href = `P-STATIC_CREATE_STEP4.html?projectId=${projectId}`;
+            });
+
+            // 响应式处理
+            function handleResize() {
+                const width = window.innerWidth;
+                
+                if (width < 1024 && !sidebarCollapsed) {
+                    // 小屏幕自动折叠侧边栏
+                    sidebarToggle.click();
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化检查
+
+            // 解析URL参数的辅助函数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取URL参数并加载项目数据
+            const params = getUrlParams();
+            if(params.projectId) {
+                console.log('加载项目数据，项目ID:', params.projectId);
+                // 这里应该加载项目的具体数据
+            }
+        });
+    </script>
+</body>
+</html>

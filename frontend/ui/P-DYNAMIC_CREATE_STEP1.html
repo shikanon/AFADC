@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI动态漫制作 - 基础信息设置 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .step-indicator {
+            position: relative;
+        }
+        
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 12px;
+            width: 2px;
+            height: calc(100% - 40px);
+            background-color: #E2E8F0;
+            z-index: 1;
+        }
+        
+        .step-item {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-item.active::before {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+        }
+        
+        .step-item.completed::before {
+            background-color: #22C55E;
+            border-color: #22C55E;
+        }
+        
+        .step-item::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #E2E8F0;
+            border-radius: 50%;
+            background-color: white;
+            z-index: 3;
+        }
+        
+        .step-item.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 14px;
+            left: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 4;
+        }
+        
+        .form-input-focus:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        .upload-area {
+            border: 2px dashed #CBD5E1;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #3B82F6;
+            background-color: #F8FAFC;
+        }
+        
+        .upload-area.dragover {
+            border-color: #3B82F6;
+            background-color: #EBF8FF;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bars text-text-secondary"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-magic text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-text-primary">AI漫剧速成工场</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框 -->
+            <div class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <input type="text" id="global-search" placeholder="搜索项目、资产..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：通知和用户 -->
+            <div class="flex items-center space-x-4">
+                <button id="notification-btn" class="relative p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bell text-text-secondary"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/zFztv2D6Tk0/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                    <span class="text-sm font-medium text-text-primary">张设计师</span>
+                    <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 bg-white border-r border-border-light sidebar-expanded transition-all duration-300 z-40">
+        <nav class="p-4 space-y-2">
+            <a href="#" id="nav-projects" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-white">
+                <i class="fas fa-folder text-lg"></i>
+                <span class="sidebar-text">项目管理</span>
+            </a>
+            <a href="#" id="nav-assets" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-images text-lg"></i>
+                <span class="sidebar-text">资产管理</span>
+            </a>
+            <a href="#" id="nav-users" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-users text-lg"></i>
+                <span class="sidebar-text">用户管理</span>
+            </a>
+            <a href="#" id="nav-plans" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-crown text-lg"></i>
+                <span class="sidebar-text">套餐管理</span>
+            </a>
+            <a href="#" id="nav-api-keys" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-key text-lg"></i>
+                <span class="sidebar-text">API密钥设置</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6">
+            <!-- 页面头部 -->
+            <div id="page-header" class="flex items-center justify-between mb-6">
+                <div>
+                    <nav class="text-sm text-text-secondary mb-2">
+                        <span>首页</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span>项目管理</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span class="text-text-primary">AI动态漫制作</span>
+                    </nav>
+                    <h2 class="text-2xl font-semibold text-text-primary">AI动态漫制作 - 基础信息设置</h2>
+                </div>
+            </div>
+
+            <!-- 步骤指示器 -->
+            <div id="step-indicator" class="bg-white rounded-lg border border-border-light p-6 mb-6">
+                <div class="flex items-start space-x-6">
+                    <div class="step-indicator flex-1">
+                        <div class="step-item active mb-4">
+                            <div class="ml-8">
+                                <div class="font-medium text-text-primary">基础信息设置</div>
+                                <div class="text-sm text-text-secondary">设置剧本基本信息和画风</div>
+                            </div>
+                        </div>
+                        <div class="step-item mb-4">
+                            <div class="ml-8">
+                                <div class="font-medium text-text-secondary">确认角色</div>
+                                <div class="text-sm text-text-secondary">创建或选择角色IP形象</div>
+                            </div>
+                        </div>
+                        <div class="step-item mb-4">
+                            <div class="ml-8">
+                                <div class="font-medium text-text-secondary">章节管理</div>
+                                <div class="text-sm text-text-secondary">创建和管理剧本章节</div>
+                            </div>
+                        </div>
+                        <div class="step-item mb-4">
+                            <div class="ml-8">
+                                <div class="font-medium text-text-secondary">分镜脚本与画面生成</div>
+                                <div class="text-sm text-text-secondary">AI拆分剧本为生成分镜</div>
+                            </div>
+                        </div>
+                        <div class="step-item mb-4">
+                            <div class="ml-8">
+                                <div class="font-medium text-text-secondary">生成分镜视频</div>
+                                <div class="text-sm text-text-secondary">将分镜画面转换为动态视频</div>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="ml-8">
+                                <div class="font-medium text-text-secondary">合成最终视频</div>
+                                <div class="text-sm text-text-secondary">配置并生成最终视频</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表单区域 -->
+            <div id="form-container" class="bg-white rounded-lg border border-border-light p-6">
+                <form id="basic-info-form" class="space-y-6">
+                    <!-- 剧本名称 -->
+                    <div class="space-y-2">
+                        <label for="project-name" class="block text-sm font-medium text-text-primary">剧本名称 *</label>
+                        <input type="text" id="project-name" name="project-name" 
+                               class="w-full px-4 py-2 border border-border-light rounded-lg form-input-focus" 
+                               placeholder="请输入剧本名称" required>
+                    </div>
+
+                    <!-- 故事背景 -->
+                    <div class="space-y-2">
+                        <label for="story-background" class="block text-sm font-medium text-text-primary">故事背景</label>
+                        <textarea id="story-background" name="story-background" rows="4"
+                                  class="w-full px-4 py-2 border border-border-light rounded-lg form-input-focus resize-none" 
+                                  placeholder="请描述故事的背景设定、世界观等..."></textarea>
+                    </div>
+
+                    <!-- 画风选择 -->
+                    <div class="space-y-4">
+                        <label class="block text-sm font-medium text-text-primary">画风选择 *</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="radio" id="style-text" name="style-choice" value="text" class="text-primary focus:ring-primary" checked>
+                                <span class="text-sm text-text-primary">文本提示词</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="radio" id="style-image" name="style-choice" value="image" class="text-primary focus:ring-primary">
+                                <span class="text-sm text-text-primary">参考图片</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 画风提示词 -->
+                    <div id="style-text-section" class="space-y-2">
+                        <label for="style-prompt" class="block text-sm font-medium text-text-primary">画风提示词 *</label>
+                        <textarea id="style-prompt" name="style-prompt" rows="3"
+                                  class="w-full px-4 py-2 border border-border-light rounded-lg form-input-focus resize-none" 
+                                  placeholder="请描述期望的画风，例如：日系动漫风格，明亮的色彩，细腻的线条，可爱的角色设计..."
+                                  required>日系动漫风格，明亮的色彩，细腻的线条，可爱的角色设计，高清画质</textarea>
+                        <div class="text-xs text-text-secondary">
+                            <i class="fas fa-lightbulb mr-1"></i>
+                            提示：详细的画风描述可以帮助AI生成更符合预期的作品
+                        </div>
+                    </div>
+
+                    <!-- 画风参考图 -->
+                    <div id="style-image-section" class="space-y-2 hidden">
+                        <label class="block text-sm font-medium text-text-primary">参考图片 *</label>
+                        <div id="upload-area" class="upload-area rounded-lg p-8 text-center cursor-pointer">
+                            <input type="file" id="style-reference" name="style-reference" accept="image/*" class="hidden">
+                            <div id="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-text-secondary mb-4"></i>
+                                <div class="text-sm text-text-primary mb-2">点击上传或拖拽图片到此处</div>
+                                <div class="text-xs text-text-secondary">支持 JPG、PNG 格式，文件大小不超过 10MB</div>
+                            </div>
+                            <div id="upload-preview" class="hidden">
+                                <img id="preview-image" src="" alt="参考图片预览" class="max-w-full max-h-48 mx-auto rounded-lg">
+                                <div class="mt-4">
+                                    <button type="button" id="change-image" class="text-sm text-primary hover:text-blue-600">
+                                        <i class="fas fa-exchange-alt mr-1"></i>更换图片
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 视频参数设置 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 视频比例 -->
+                        <div class="space-y-2">
+                            <label for="video-aspect" class="block text-sm font-medium text-text-primary">视频比例 *</label>
+                            <select id="video-aspect" name="video-aspect" 
+                                    class="w-full px-4 py-2 border border-border-light rounded-lg form-input-focus" required>
+                                <option value="">请选择视频比例</option>
+                                <option value="16:9" selected>16:9 (横屏)</option>
+                                <option value="9:16">9:16 (竖屏)</option>
+                                <option value="1:1">1:1 (正方形)</option>
+                                <option value="4:3">4:3 (标准)</option>
+                            </select>
+                        </div>
+
+                        <!-- 分辨率 -->
+                        <div class="space-y-2">
+                            <label for="video-resolution" class="block text-sm font-medium text-text-primary">分辨率 *</label>
+                            <select id="video-resolution" name="video-resolution" 
+                                    class="w-full px-4 py-2 border border-border-light rounded-lg form-input-focus" required>
+                                <option value="">请选择分辨率</option>
+                                <option value="1080p" selected>1080p (1920x1080)</option>
+                                <option value="720p">720p (1280x720)</option>
+                                <option value="480p">480p (854x480)</option>
+                                <option value="2160p">4K (3840x2160)</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div id="action-buttons" class="flex items-center justify-end space-x-4 mt-8">
+                <button id="save-draft-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-save mr-2"></i>保存草稿
+                </button>
+                <button id="next-step-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    下一步
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏折叠功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 画风选择切换
+            const styleTextRadio = document.querySelector('#style-text');
+            const styleImageRadio = document.querySelector('#style-image');
+            const styleTextSection = document.querySelector('#style-text-section');
+            const styleImageSection = document.querySelector('#style-image-section');
+            const stylePrompt = document.querySelector('#style-prompt');
+            const styleReference = document.querySelector('#style-reference');
+
+            function toggleStyleSections() {
+                if (styleTextRadio.checked) {
+                    styleTextSection.classList.remove('hidden');
+                    styleImageSection.classList.add('hidden');
+                    stylePrompt.required = true;
+                    styleReference.required = false;
+                } else {
+                    styleTextSection.classList.add('hidden');
+                    styleImageSection.classList.remove('hidden');
+                    stylePrompt.required = false;
+                    styleReference.required = true;
+                }
+            }
+
+            styleTextRadio.addEventListener('change', toggleStyleSections);
+            styleImageRadio.addEventListener('change', toggleStyleSections);
+
+            // 图片上传功能
+            const uploadArea = document.querySelector('#upload-area');
+            const uploadPlaceholder = document.querySelector('#upload-placeholder');
+            const uploadPreview = document.querySelector('#upload-preview');
+            const previewImage = document.querySelector('#preview-image');
+            const changeImageBtn = document.querySelector('#change-image');
+
+            uploadArea.addEventListener('click', function() {
+                if (!uploadPreview.classList.contains('hidden')) return;
+                styleReference.click();
+            });
+
+            changeImageBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                styleReference.click();
+            });
+
+            styleReference.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        uploadPlaceholder.classList.add('hidden');
+                        uploadPreview.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 拖拽上传
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                if (uploadPreview.classList.contains('hidden') && e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        styleReference.files = e.dataTransfer.files;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImage.src = e.target.result;
+                            uploadPlaceholder.classList.add('hidden');
+                            uploadPreview.classList.remove('hidden');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            // 表单验证
+            function validateForm() {
+                const projectName = document.querySelector('#project-name').value.trim();
+                const videoAspect = document.querySelector('#video-aspect').value;
+                const videoResolution = document.querySelector('#video-resolution').value;
+                
+                if (!projectName) {
+                    alert('请输入剧本名称');
+                    return false;
+                }
+                
+                if (!videoAspect) {
+                    alert('请选择视频比例');
+                    return false;
+                }
+                
+                if (!videoResolution) {
+                    alert('请选择分辨率');
+                    return false;
+                }
+                
+                if (styleTextRadio.checked) {
+                    const stylePromptValue = stylePrompt.value.trim();
+                    if (!stylePromptValue) {
+                        alert('请输入画风提示词');
+                        return false;
+                    }
+                } else {
+                    if (!styleReference.files.length) {
+                        alert('请上传参考图片');
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+
+            // 下一步按钮
+            document.querySelector('#next-step-btn').addEventListener('click', function() {
+                if (validateForm()) {
+                    // 生成项目ID
+                    const projectId = 'PROJ-' + Date.now();
+                    
+                    // 保存表单数据到localStorage（实际应用中会发送到后端）
+                    const formData = {
+                        projectId: projectId,
+                        projectName: document.querySelector('#project-name').value.trim(),
+                        storyBackground: document.querySelector('#story-background').value.trim(),
+                        styleChoice: styleTextRadio.checked ? 'text' : 'image',
+                        stylePrompt: stylePrompt.value.trim(),
+                        videoAspect: document.querySelector('#video-aspect').value,
+                        videoResolution: document.querySelector('#video-resolution').value,
+                        projectType: 'dynamic'
+                    };
+                    
+                    localStorage.setItem('currentProject', JSON.stringify(formData));
+                    
+                    // 跳转到下一步
+                    window.location.href = `P-DYNAMIC_CREATE_STEP2.html?projectId=${projectId}`;
+                }
+            });
+
+            // 保存草稿按钮
+            document.querySelector('#save-draft-btn').addEventListener('click', function() {
+                // 生成项目ID
+                const projectId = 'PROJ-' + Date.now();
+                
+                // 保存表单数据到localStorage（实际应用中会发送到后端）
+                const formData = {
+                    projectId: projectId,
+                    projectName: document.querySelector('#project-name').value.trim() || '未命名项目',
+                    storyBackground: document.querySelector('#story-background').value.trim(),
+                    styleChoice: styleTextRadio.checked ? 'text' : 'image',
+                    stylePrompt: stylePrompt.value.trim(),
+                    videoAspect: document.querySelector('#video-aspect').value,
+                    videoResolution: document.querySelector('#video-resolution').value,
+                    projectType: 'dynamic',
+                    status: 'draft'
+                };
+                
+                localStorage.setItem('savedProject_' + projectId, JSON.stringify(formData));
+                
+                // 跳转到项目管理页
+                window.location.href = 'P-PROJECT_MANAGE.html';
+            });
+
+            // 导航菜单点击事件
+            document.querySelector('#nav-projects').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('当前页面的内容将不会保存，确定要离开吗？')) {
+                    window.location.href = 'P-PROJECT_MANAGE.html';
+                }
+            });
+
+            document.querySelector('#nav-assets').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('当前页面的内容将不会保存，确定要离开吗？')) {
+                    window.location.href = 'P-ASSET_MANAGE.html';
+                }
+            });
+
+            document.querySelector('#nav-users').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('当前页面的内容将不会保存，确定要离开吗？')) {
+                    window.location.href = 'P-USER_MANAGE.html';
+                }
+            });
+
+            document.querySelector('#nav-plans').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('当前页面的内容将不会保存，确定要离开吗？')) {
+                    window.location.href = 'P-PLAN_MANAGE.html';
+                }
+            });
+
+            document.querySelector('#nav-api-keys').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('当前页面的内容将不会保存，确定要离开吗？')) {
+                    window.location.href = 'P-API_KEY_SETTING.html';
+                }
+            });
+
+            // 响应式处理
+            function handleResize() {
+                const width = window.innerWidth;
+                
+                if (width < 1024 && !sidebarCollapsed) {
+                    // 小屏幕自动折叠侧边栏
+                    sidebarToggle.click();
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化检查
+        });
+    </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Header, Sidebar, PageHeader } from '../../components/Layout';
+import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
 import styles from './styles.module.css';
 
 const StaticCreateStep4: React.FC = () => {
@@ -129,34 +129,16 @@ const StaticCreateStep4: React.FC = () => {
 
           {/* 步骤指示器 */}
           <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
-            <div className="flex items-start space-x-6">
-              <div className={`${styles.stepIndicator} flex-1`}>
-                <div className={`${styles.stepItem} completed mb-4`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-text-primary">基础信息设置</h3>
-                    <p className="text-sm text-text-secondary">已完成</p>
-                  </div>
-                </div>
-                <div className={`${styles.stepItem} completed mb-4`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-text-primary">确认角色</h3>
-                    <p className="text-sm text-text-secondary">已完成</p>
-                  </div>
-                </div>
-                <div className={`${styles.stepItem} completed mb-4`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-text-primary">创建章节，生成分镜画面</h3>
-                    <p className="text-sm text-text-secondary">已完成</p>
-                  </div>
-                </div>
-                <div className={`${styles.stepItem} active`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-primary">合成最终视频</h3>
-                    <p className="text-sm text-primary">当前步骤</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StepIndicator
+              currentStep={4}
+              steps={[
+                { id: 1, title: '基础信息设置', description: '已完成' },
+                { id: 2, title: '确认角色', description: '已完成' },
+                { id: 3, title: '创建章节，生成分镜画面', description: '已完成' },
+                { id: 4, title: '合成最终视频', description: '当前步骤' }
+              ]}
+              direction="horizontal"
+            />
           </div>
 
           {/* 视频合成配置区 */}

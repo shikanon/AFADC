@@ -2,4 +2,5 @@
 export { default as SearchToolbar } from './SearchToolbar';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as Pagination } from './Pagination';
+export { default as StepIndicator } from './StepIndicator';
 // 后续会逐步添加更多通用组件

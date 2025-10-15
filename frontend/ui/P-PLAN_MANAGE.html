@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>套餐管理 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .plan-card {
+            transition: all 0.3s ease;
+        }
+        
+        .plan-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .feature-item i {
+            margin-right: 8px;
+            color: #22C55E;
+        }
+        
+        .price-highlight {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3B82F6;
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bars text-text-secondary"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-magic text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-text-primary">AI漫剧速成工场</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框 -->
+            <div class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <input type="text" id="global-search" placeholder="搜索项目、资产..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：通知和用户 -->
+            <div class="flex items-center space-x-4">
+                <button id="notification-btn" class="relative p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bell text-text-secondary"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/hgen0rcFcws/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                    <span class="text-sm font-medium text-text-primary">张设计师</span>
+                    <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 bg-white border-r border-border-light sidebar-expanded transition-all duration-300 z-40">
+        <nav class="p-4 space-y-2">
+            <a href="#" id="nav-projects" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-folder text-lg"></i>
+                <span class="sidebar-text">项目管理</span>
+            </a>
+            <a href="#" id="nav-assets" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-images text-lg"></i>
+                <span class="sidebar-text">资产管理</span>
+            </a>
+            <a href="#" id="nav-users" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-users text-lg"></i>
+                <span class="sidebar-text">用户管理</span>
+            </a>
+            <a href="#" id="nav-plans" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-white">
+                <i class="fas fa-crown text-lg"></i>
+                <span class="sidebar-text">套餐管理</span>
+            </a>
+            <a href="#" id="nav-api-keys" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-key text-lg"></i>
+                <span class="sidebar-text">API密钥设置</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6">
+            <!-- 页面头部 -->
+            <div id="page-header" class="mb-8">
+                <nav class="text-sm text-text-secondary mb-2">
+                    <span>首页</span>
+                    <i class="fas fa-chevron-right mx-2"></i>
+                    <span class="text-text-primary">套餐管理</span>
+                </nav>
+                <h2 class="text-2xl font-semibold text-text-primary">套餐管理</h2>
+                <p class="text-text-secondary mt-2">选择适合您的套餐，开启AI漫剧创作之旅</p>
+            </div>
+
+            <!-- 套餐列表 -->
+            <div id="plan-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 基础版套餐 -->
+                <div id="plan-basic" class="plan-card bg-white rounded-lg border border-border-light p-6 relative">
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-semibold text-text-primary mb-2">基础版</h3>
+                        <div class="mb-4">
+                            <span class="price-highlight">¥99</span>
+                            <span class="text-text-secondary">/月</span>
+                        </div>
+                        <p class="text-text-secondary text-sm mb-6">适合个人创作者入门使用</p>
+                    </div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">静态漫制作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">每月5个项目</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">基础AI生图</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">100个资产存储</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">标准分辨率输出</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-times text-sm text-text-secondary"></i>
+                            <span class="text-sm text-text-secondary">动态漫制作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-times text-sm text-text-secondary"></i>
+                            <span class="text-sm text-text-secondary">团队协作</span>
+                        </div>
+                    </div>
+                    
+                    <button id="subscribe-basic" class="w-full py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors font-medium" data-plan-id="basic">
+                        立即订阅
+                    </button>
+                </div>
+
+                <!-- 专业版套餐 -->
+                <div id="plan-pro" class="plan-card bg-white rounded-lg border border-border-light p-6 relative">
+                    <div class="popular-badge">
+                        <i class="fas fa-crown mr-1"></i>最受欢迎
+                    </div>
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-semibold text-text-primary mb-2">专业版</h3>
+                        <div class="mb-4">
+                            <span class="price-highlight">¥299</span>
+                            <span class="text-text-secondary">/月</span>
+                        </div>
+                        <p class="text-text-secondary text-sm mb-6">适合专业创作者和小型团队</p>
+                    </div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">静态漫制作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">动态漫制作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">每月20个项目</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">高级AI生图</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">500个资产存储</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">高清分辨率输出</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">最多5人团队协作</span>
+                        </div>
+                    </div>
+                    
+                    <button id="subscribe-pro" class="w-full py-3 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors font-medium" data-plan-id="pro">
+                        立即订阅
+                    </button>
+                </div>
+
+                <!-- 企业版套餐 -->
+                <div id="plan-enterprise" class="plan-card bg-white rounded-lg border border-border-light p-6 relative">
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-semibold text-text-primary mb-2">企业版</h3>
+                        <div class="mb-4">
+                            <span class="price-highlight">¥999</span>
+                            <span class="text-text-secondary">/月</span>
+                        </div>
+                        <p class="text-text-secondary text-sm mb-6">适合企业级大规模生产需求</p>
+                    </div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">静态漫制作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">动态漫制作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">无限项目数量</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">顶级AI生图</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">无限资产存储</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">4K超高清输出</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">无限团队协作</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">优先技术支持</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check text-sm"></i>
+                            <span class="text-sm text-text-primary">API调用权限</span>
+                        </div>
+                    </div>
+                    
+                    <button id="subscribe-enterprise" class="w-full py-3 bg-tertiary text-white rounded-lg hover:bg-green-600 transition-colors font-medium" data-plan-id="enterprise">
+                        立即订阅
+                    </button>
+                </div>
+            </div>
+
+            <!-- 套餐对比表格 -->
+            <div id="plan-comparison" class="mt-12 bg-white rounded-lg border border-border-light overflow-hidden">
+                <h3 class="text-lg font-semibold text-text-primary p-6 border-b border-border-light">套餐功能对比</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-bg-secondary">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-text-secondary">功能特性</th>
+                                <th class="px-6 py-4 text-center text-sm font-medium text-text-secondary">基础版</th>
+                                <th class="px-6 py-4 text-center text-sm font-medium text-text-secondary">专业版</th>
+                                <th class="px-6 py-4 text-center text-sm font-medium text-text-secondary">企业版</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-light">
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">静态漫制作</td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-check text-success"></i>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-check text-success"></i>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-check text-success"></i>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">动态漫制作</td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-times text-text-secondary"></i>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-check text-success"></i>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-check text-success"></i>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">每月项目数量</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">5个</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">20个</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">无限</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">AI生图质量</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">基础</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">高级</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">顶级</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">资产存储数量</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">100个</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">500个</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">无限</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">视频分辨率</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">720P</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">1080P</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">4K</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">团队协作人数</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">1人</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">5人</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">无限</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">技术支持</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">标准</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">优先</td>
+                                <td class="px-6 py-4 text-center text-sm text-text-primary">专属</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-text-primary">API调用权限</td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-times text-text-secondary"></i>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-times text-text-secondary"></i>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <i class="fas fa-check text-success"></i>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏折叠功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 导航菜单点击事件
+            document.querySelector('#nav-projects').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PROJECT_MANAGE.html';
+            });
+
+            document.querySelector('#nav-assets').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-ASSET_MANAGE.html';
+            });
+
+            document.querySelector('#nav-users').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-USER_MANAGE.html';
+            });
+
+            document.querySelector('#nav-api-keys').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-API_KEY_SETTING.html';
+            });
+
+            // 订阅按钮点击事件
+            document.querySelector('#subscribe-basic').addEventListener('click', function() {
+                const planId = this.dataset.planId;
+                console.log('需要调用第三方支付接口实现订阅功能');
+                // 注释：此功能需要集成第三方支付系统，在原型阶段仅做UI展示
+                // window.open(`https://payment-gateway.com/subscribe?plan=${planId}`, '_blank');
+            });
+
+            document.querySelector('#subscribe-pro').addEventListener('click', function() {
+                const planId = this.dataset.planId;
+                console.log('需要调用第三方支付接口实现订阅功能');
+                // 注释：此功能需要集成第三方支付系统，在原型阶段仅做UI展示
+                // window.open(`https://payment-gateway.com/subscribe?plan=${planId}`, '_blank');
+            });
+
+            document.querySelector('#subscribe-enterprise').addEventListener('click', function() {
+                const planId = this.dataset.planId;
+                console.log('需要调用第三方支付接口实现订阅功能');
+                // 注释：此功能需要集成第三方支付系统，在原型阶段仅做UI展示
+                // window.open(`https://payment-gateway.com/subscribe?plan=${planId}`, '_blank');
+            });
+
+            // 响应式处理
+            function handleResize() {
+                const width = window.innerWidth;
+                
+                if (width < 1024 && !sidebarCollapsed) {
+                    // 小屏幕自动折叠侧边栏
+                    sidebarToggle.click();
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化检查
+        });
+    </script>
+</body>
+</html>

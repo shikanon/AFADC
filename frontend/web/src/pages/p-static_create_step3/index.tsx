@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Header, Sidebar, PageHeader } from '../../components/Layout';
+import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
 import styles from './styles.module.css';
 
 interface StoryboardItem {
@@ -209,33 +209,17 @@ const StaticCreateStep3: React.FC = () => {
           />
 
           {/* 步骤指示器 */}
-          <div className="flex items-start space-x-6 mb-8">
-            <div className={`${styles.stepIndicator} flex-1`}>
-              <div className={`${styles.stepItem} ${styles.completed} mb-4`}>
-                <div className="ml-8">
-                  <div className="font-medium text-text-primary">基础信息设置</div>
-                  <div className="text-sm text-text-secondary">设置剧本名称、画风等</div>
-                </div>
-              </div>
-              <div className={`${styles.stepItem} ${styles.completed} mb-4`}>
-                <div className="ml-8">
-                  <div className="font-medium text-text-primary">确认角色</div>
-                  <div className="text-sm text-text-secondary">创建或选择角色IP</div>
-                </div>
-              </div>
-              <div className={`${styles.stepItem} active mb-4`}>
-                <div className="ml-8">
-                  <div className="font-medium text-primary">创建章节，生成分镜画面</div>
-                  <div className="text-sm text-text-secondary">拆分剧本，生成画面</div>
-                </div>
-              </div>
-              <div className={`${styles.stepItem} mb-4`}>
-                <div className="ml-8">
-                  <div className="font-medium text-text-secondary">合成最终视频</div>
-                  <div className="text-sm text-text-secondary">配置并生成视频</div>
-                </div>
-              </div>
-            </div>
+          <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
+            <StepIndicator
+              currentStep={3}
+              steps={[
+                { id: 1, title: '基础信息设置', description: '设置剧本名称、画风等' },
+                { id: 2, title: '确认角色', description: '创建或选择角色IP' },
+                { id: 3, title: '创建章节，生成分镜画面', description: '拆分剧本，生成画面' },
+                { id: 4, title: '合成最终视频', description: '配置并生成视频' }
+              ]}
+              direction="horizontal"
+            />
           </div>
 
           {/* 章节输入区 */}

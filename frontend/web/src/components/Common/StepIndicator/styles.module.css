@@ -1,0 +1,177 @@
+.container {
+  display: flex;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  margin-bottom: 24px;
+}
+
+.horizontal .step {
+  flex: 1;
+  margin-bottom: 0;
+  margin-right: 16px;
+}
+
+.horizontal .step:last-child {
+  margin-right: 0;
+}
+
+.stepIndicator {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.stepIndicator::after {
+  content: '';
+  position: absolute;
+  background-color: #E2E8F0;
+  z-index: 0;
+}
+
+.vertical .stepIndicator::after {
+  left: 15px;
+  top: 30px;
+  bottom: -20px;
+  width: 2px;
+}
+
+.horizontal .stepIndicator::after {
+  top: 12px;
+  left: 20px;
+  width: calc(100% - 20px);
+  height: 2px;
+}
+
+.vertical .step:last-child .stepIndicator::after,
+.horizontal .step:last-child .stepIndicator::after {
+  display: none;
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #E2E8F0;
+  background-color: white;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 12px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.horizontal .stepNumber {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+.stepContent {
+  flex: 1;
+  padding-top: 2px;
+}
+
+.stepTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.stepDescription {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+/* 待完成状态 */
+.pending .stepNumber {
+  border-color: #E2E8F0;
+  color: #6B7280;
+}
+
+.pending .stepTitle {
+  color: #6B7280;
+}
+
+/* 进行中状态 */
+.active .stepNumber {
+  background-color: #3B82F6;
+  border-color: #3B82F6;
+  color: white;
+}
+
+.active .stepTitle {
+  color: #3B82F6;
+}
+
+.active::after {
+  background-color: #3B82F6;
+}
+
+/* 已完成状态 */
+.completed .stepNumber {
+  background-color: #22C55E;
+  border-color: #22C55E;
+  color: white;
+}
+
+.completed .stepTitle {
+  color: #1F2937;
+}
+
+.completed::after {
+  background-color: #22C55E;
+}
+
+/* 可点击状态 */
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover .stepNumber {
+  border-color: #3B82F6;
+}
+
+.clickable:hover .stepTitle {
+  color: #3B82F6;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .horizontal {
+    flex-direction: column;
+  }
+  
+  .horizontal .step {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+  
+  .horizontal .step:last-child {
+    margin-bottom: 0;
+  }
+  
+  .horizontal .stepIndicator::after {
+    top: 30px;
+    left: 15px;
+    width: 2px;
+    height: calc(100% - 30px);
+  }
+}

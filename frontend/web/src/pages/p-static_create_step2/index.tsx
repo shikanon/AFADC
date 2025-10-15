@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Header, Sidebar, PageHeader } from '../../components/Layout';
+import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
 import styles from './styles.module.css';
 
 interface CharacterData {
@@ -53,6 +53,7 @@ const StaticCreateStep2: React.FC = () => {
   const [narratorSpeed, setNarratorSpeed] = useState(1.0);
   const [narratorPreviewText, setNarratorPreviewText] = useState('在遥远的魔法王国，有一所古老的魔法学院...');
   const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
+  const [characterInfo, setCharacterInfo] = useState(''); // 角色信息配置状态
   const audioPlayerRef = useRef<HTMLAudioElement>(new Audio());
 
   useEffect(() => {
@@ -138,6 +139,26 @@ const StaticCreateStep2: React.FC = () => {
     console.log('添加新角色');
   };
 
+  const handleBatchGenerateCharacters = () => {
+    console.log('批量生成角色');
+    // 添加新角色到角色列表
+    const newCharacter: CharacterData = {
+      id: Date.now().toString(),
+      name: `新角色${characters.length + 1}`,
+      role: '配角',
+      images: [
+        'https://s.coze.cn/image/placeholder1/',
+        'https://s.coze.cn/image/placeholder2/',
+        'https://s.coze.cn/image/placeholder3/'
+      ],
+      voice: 'voice1',
+      speed: 1.0,
+      previewText: '这是新生成的角色',
+      isGenerating: false
+    };
+    setCharacters(prev => [...prev, newCharacter]);
+  };
+
   const handleNarratorPreviewVoice = () => {
     console.log('需要调用第三方接口实现旁白语音合成和播放功能');
   };
@@ -177,42 +198,59 @@ const StaticCreateStep2: React.FC = () => {
 
           {/* 步骤指示器 */}
           <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
-            <div className="flex items-start space-x-6">
-              <div className={`${styles.stepIndicator} flex-1`}>
-                <div className={`${styles.stepItem} ${styles.completed} mb-4`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-text-primary">基础信息设置</h3>
-                    <p className="text-sm text-text-secondary">设置剧本名称、画风等基础信息</p>
-                  </div>
-                </div>
-                <div className={`${styles.stepItem} ${styles.active} mb-4`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-primary">确认角色</h3>
-                    <p className="text-sm text-text-secondary">创建或选择角色IP形象，配置配音</p>
-                  </div>
-                </div>
-                <div className={`${styles.stepItem} mb-4`}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-text-secondary">创建章节，生成分镜画面</h3>
-                    <p className="text-sm text-text-secondary">拆分剧本为分镜，生成画面</p>
-                  </div>
-                </div>
-                <div className={styles.stepItem}>
-                  <div className="ml-8">
-                    <h3 className="font-medium text-text-secondary">合成最终视频</h3>
-                    <p className="text-sm text-text-secondary">配置背景音乐，生成完整视频</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StepIndicator
+              currentStep={2}
+              steps={[
+                { id: 1, title: '基础信息设置', description: '设置剧本名称、画风等基础信息' },
+                { id: 2, title: '确认角色', description: '创建或选择角色IP形象，配置配音' },
+                { id: 3, title: '创建章节，生成分镜画面', description: '拆分剧本为分镜，生成画面' },
+                { id: 4, title: '合成最终视频', description: '配置背景音乐，生成完整视频' }
+              ]}
+              direction="horizontal"
+            />
           </div>
 
           {/* 角色管理区域 */}
           <div className="space-y-6">
+            {/* 角色信息配置模块 */}
+            <div className="bg-white rounded-lg border border-border-light p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">角色信息配置</h3>
+              
+              {/* 角色信息输入区域 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-text-secondary mb-2">角色信息</label>
+                <textarea 
+                  rows={6}
+                  value={characterInfo}
+                  onChange={(e) => setCharacterInfo(e.target.value)}
+                  placeholder="请输入剧本人物小传或角色信息"
+                  className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary hover:border-primary transition-colors resize-none overflow-y-auto"
+                />
+              </div>
+              
+              {/* 批量角色生成按钮 */}
+              <div className="flex justify-end">
+                <button 
+                  onClick={handleBatchGenerateCharacters}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-all duration-200 flex items-center shadow-sm hover:shadow-md transform hover:scale-105"
+                >
+                  <i className="fas fa-layer-group mr-2"></i>批量生成角色
+                </button>
+              </div>
+            </div>
+            
             {/* 角色列表 */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-text-primary">角色设置</h3>
-              
+              {/* 新增角色按钮 */}
+              <div className="text-center">
+                <button 
+                  onClick={handleAddCharacter}
+                  className="px-6 py-3 border-2 border-dashed border-border-medium text-text-secondary rounded-lg hover:border-primary hover:text-primary transition-colors"
+                >
+                  <i className="fas fa-plus mr-2"></i>新增角色
+                </button>
+              </div>
               {characters.map((character) => (
                 <div key={character.id} className={`${styles.characterCard} bg-white rounded-lg border border-border-light p-6`}>
                   <div className="flex items-start space-x-6">
@@ -336,16 +374,7 @@ const StaticCreateStep2: React.FC = () => {
                 </div>
               ))}
             </div>
-            
-            {/* 新增角色按钮 */}
-            <div className="text-center">
-              <button 
-                onClick={handleAddCharacter}
-                className="px-6 py-3 border-2 border-dashed border-border-medium text-text-secondary rounded-lg hover:border-primary hover:text-primary transition-colors"
-              >
-                <i className="fas fa-plus mr-2"></i>新增角色
-              </button>
-            </div>
+
             
             {/* 旁白配置 */}
             <div className="bg-white rounded-lg border border-border-light p-6">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
-import { Header, Sidebar, PageHeader } from '../../components/Layout';
+import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
 
 interface FormData {
   projectName: string;
@@ -297,44 +297,16 @@ const StaticCreateStep1: React.FC = () => {
             <div className="w-64 flex-shrink-0">
               <div className="bg-white rounded-lg border border-border-light p-6">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">制作流程</h3>
-                <div className="space-y-6">
-                  <div className={`${styles.stepIndicator} ${styles.stepActive}`}>
-                    <div className="flex items-center space-x-3">
-                      <div className={`${styles.stepNumber} w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center text-sm font-medium`}>1</div>
-                      <div>
-                        <div className={`${styles.stepTitle} text-sm font-medium`}>基础信息设置</div>
-                        <div className="text-xs text-text-secondary mt-1">设置剧本基本信息</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.stepIndicator}>
-                    <div className="flex items-center space-x-3">
-                      <div className={`${styles.stepNumber} w-8 h-8 rounded-full border-2 border-border-light flex items-center justify-center text-sm font-medium text-text-secondary`}>2</div>
-                      <div>
-                        <div className="text-sm font-medium text-text-secondary">确认角色</div>
-                        <div className="text-xs text-text-secondary mt-1">创建或选择角色IP</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.stepIndicator}>
-                    <div className="flex items-center space-x-3">
-                      <div className={`${styles.stepNumber} w-8 h-8 rounded-full border-2 border-border-light flex items-center justify-center text-sm font-medium text-text-secondary`}>3</div>
-                      <div>
-                        <div className="text-sm font-medium text-text-secondary">创建章节，生成分镜画面</div>
-                        <div className="text-xs text-text-secondary mt-1">拆分剧本，生成画面</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.stepIndicator}>
-                    <div className="flex items-center space-x-3">
-                      <div className={`${styles.stepNumber} w-8 h-8 rounded-full border-2 border-border-light flex items-center justify-center text-sm font-medium text-text-secondary`}>4</div>
-                      <div>
-                        <div className="text-sm font-medium text-text-secondary">合成最终视频</div>
-                        <div className="text-xs text-text-secondary mt-1">配置并生成视频</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <StepIndicator
+                  currentStep={1}
+                  steps={[
+                    { id: 1, title: '基础信息设置', description: '设置剧本基本信息' },
+                    { id: 2, title: '确认角色', description: '创建或选择角色IP' },
+                    { id: 3, title: '创建章节，生成分镜画面', description: '拆分剧本，生成画面' },
+                    { id: 4, title: '合成最终视频', description: '配置并生成视频' }
+                  ]}
+                  direction="vertical"
+                />
               </div>
             </div>
 

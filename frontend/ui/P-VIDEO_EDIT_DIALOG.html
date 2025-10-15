@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频编辑 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+        
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .chat-message {
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: #3B82F6;
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            margin-left: auto;
+        }
+        
+        .ai-message {
+            background-color: #F1F5F9;
+            color: #1F2937;
+            border-radius: 18px 18px 18px 4px;
+            margin-right: auto;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .video-container::after {
+            content: '';
+            display: block;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        }
+        
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 模态弹窗背景 -->
+    <div id="modal-backdrop" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+        <!-- 模态弹窗内容 -->
+        <div id="video-edit-modal" class="bg-white rounded-xl shadow-modal w-full max-w-4xl max-h-[90vh] overflow-hidden modal-enter">
+            <!-- 弹窗头部 -->
+            <div id="modal-header" class="flex items-center justify-between p-6 border-b border-border-light">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-video text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold text-text-primary">视频编辑</h2>
+                </div>
+                <button id="close-modal-btn" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-times text-text-secondary"></i>
+                </button>
+            </div>
+
+            <!-- 弹窗内容 -->
+            <div id="modal-content" class="flex-1 overflow-y-auto">
+                <!-- 视频预览区 -->
+                <div id="video-preview-section" class="p-6 border-b border-border-light">
+                    <h3 class="text-lg font-medium text-text-primary mb-4">视频预览</h3>
+                    <div class="video-container">
+                        <video id="video-player" class="video-player" controls>
+                            <source src="https://s.coze.cn/video/sample-video.mp4" type="video/mp4">
+                            您的浏览器不支持视频播放。
+                        </video>
+                    </div>
+                    <div class="mt-4 flex items-center space-x-4">
+                        <button id="play-video-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-play mr-2"></i>播放视频
+                        </button>
+                        <button id="pause-video-btn" class="px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                            <i class="fas fa-pause mr-2"></i>暂停
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 视频提示词配置 -->
+                <div id="video-prompt-section" class="p-6 border-b border-border-light">
+                    <h3 class="text-lg font-medium text-text-primary mb-4">视频生成参数</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="video-subject" class="block text-sm font-medium text-text-secondary mb-2">主体</label>
+                            <input type="text" id="video-subject" value="魔法学院的学生们在图书馆学习" 
+                                   class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="video-action" class="block text-sm font-medium text-text-secondary mb-2">动作</label>
+                            <input type="text" id="video-action" value="翻书、讨论、思考" 
+                                   class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="video-camera" class="block text-sm font-medium text-text-secondary mb-2">运镜</label>
+                            <input type="text" id="video-camera" value="缓慢推镜，聚焦人物表情" 
+                                   class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                    </div>
+                    <button id="regenerate-video-btn" class="mt-4 px-4 py-2 bg-warning text-white rounded-lg hover:bg-yellow-600 transition-colors">
+                        <i class="fas fa-redo mr-2"></i>重新生成视频
+                    </button>
+                </div>
+
+                <!-- 对话编辑区 -->
+                <div id="chat-section" class="p-6">
+                    <h3 class="text-lg font-medium text-text-primary mb-4">AI对话编辑</h3>
+                    
+                    <!-- 历史对话区 -->
+                    <div id="chat-history" class="h-64 overflow-y-auto space-y-4 mb-4 p-4 bg-bg-secondary rounded-lg">
+                        <div class="chat-message user-message p-3">
+                            <p class="text-sm">请让视频中的角色表情更加生动一些</p>
+                        </div>
+                        <div class="chat-message ai-message p-3">
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-robot text-text-secondary text-sm mt-1"></i>
+                                <div>
+                                    <p class="text-sm">已调整角色表情参数，增加了面部微表情动画。</p>
+                                    <div class="mt-2 text-xs text-text-secondary">
+                                        <i class="fas fa-clock mr-1"></i>刚刚
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-message user-message p-3">
+                            <p class="text-sm">背景可以更明亮一点吗？</p>
+                        </div>
+                        <div class="chat-message ai-message p-3">
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-robot text-text-secondary text-sm mt-1"></i>
+                                <div>
+                                    <p class="text-sm">已提升整体亮度和对比度，使场景更加明亮清晰。</p>
+                                    <div class="mt-2 text-xs text-text-secondary">
+                                        <i class="fas fa-clock mr-1"></i>2分钟前
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 对话输入区 -->
+                    <div id="chat-input-area" class="flex space-x-3">
+                        <div class="flex-1 relative">
+                            <textarea id="chat-input" placeholder="输入您的编辑指令，例如：调整角色动作、修改背景、优化画面效果等..." 
+                                      class="w-full px-4 py-3 pr-12 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none" 
+                                      rows="3"></textarea>
+                            <button id="send-message-btn" class="absolute right-3 bottom-3 p-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-paper-plane text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI处理状态 -->
+                    <div id="ai-processing" class="hidden mt-4 p-4 bg-info bg-opacity-10 border border-info border-opacity-20 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-spinner loading-spinner text-info"></i>
+                            <span class="text-info font-medium">AI正在处理您的请求...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 弹窗底部操作按钮 -->
+            <div id="modal-footer" class="flex items-center justify-end space-x-3 p-6 border-t border-border-light bg-bg-secondary">
+                <button id="cancel-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-white transition-colors">
+                    取消
+                </button>
+                <button id="complete-edit-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-check mr-2"></i>完成编辑
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取URL参数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取分镜ID参数
+            const params = getUrlParams();
+            const storyboardId = params.storyboardId || 'default';
+
+            // 视频播放器控制
+            const videoPlayer = document.querySelector('#video-player');
+            const playBtn = document.querySelector('#play-video-btn');
+            const pauseBtn = document.querySelector('#pause-video-btn');
+
+            playBtn.addEventListener('click', function() {
+                videoPlayer.play();
+            });
+
+            pauseBtn.addEventListener('click', function() {
+                videoPlayer.pause();
+            });
+
+            // 发送消息功能
+            const chatInput = document.querySelector('#chat-input');
+            const sendBtn = document.querySelector('#send-message-btn');
+            const chatHistory = document.querySelector('#chat-history');
+            const aiProcessing = document.querySelector('#ai-processing');
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+
+                // 添加用户消息到历史记录
+                addMessageToHistory(message, 'user');
+                
+                // 清空输入框
+                chatInput.value = '';
+                
+                // 显示AI处理状态
+                aiProcessing.classList.remove('hidden');
+                
+                // 模拟AI响应
+                setTimeout(() => {
+                    const aiResponse = generateAIResponse(message);
+                    addMessageToHistory(aiResponse, 'ai');
+                    aiProcessing.classList.add('hidden');
+                    
+                    // 滚动到底部
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }, 2000);
+            }
+
+            function addMessageToHistory(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${sender === 'user' ? 'user-message' : 'ai-message'} p-3`;
+                
+                if (sender === 'user') {
+                    messageDiv.innerHTML = `<p class="text-sm">${message}</p>`;
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-robot text-text-secondary text-sm mt-1"></i>
+                            <div>
+                                <p class="text-sm">${message}</p>
+                                <div class="mt-2 text-xs text-text-secondary">
+                                    <i class="fas fa-clock mr-1"></i>刚刚
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                chatHistory.appendChild(messageDiv);
+                
+                // 滚动到底部
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+
+            function generateAIResponse(userMessage) {
+                const responses = [
+                    "已根据您的要求调整视频效果，主要优化了角色动作的流畅性。",
+                    "已修改背景场景，增加了更多细节元素。",
+                    "已调整视频色调，使整体画面更加协调。",
+                    "已优化角色表情动画，增加了更多生动的面部细节。",
+                    "已调整运镜方式，使镜头转换更加自然流畅。",
+                    "已增强视频的视觉效果，提升了整体质感。"
+                ];
+                
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // 重新生成视频
+            const regenerateBtn = document.querySelector('#regenerate-video-btn');
+            regenerateBtn.addEventListener('click', function() {
+                const subject = document.querySelector('#video-subject').value;
+                const action = document.querySelector('#video-action').value;
+                const camera = document.querySelector('#video-camera').value;
+                
+                if (!subject || !action || !camera) {
+                    alert('请填写完整的视频生成参数');
+                    return;
+                }
+                
+                // 显示处理状态
+                aiProcessing.classList.remove('hidden');
+                aiProcessing.querySelector('span').textContent = 'AI正在重新生成视频...';
+                
+                // 模拟视频重新生成
+                setTimeout(() => {
+                    aiProcessing.classList.add('hidden');
+                    alert('视频重新生成完成！');
+                    
+                    // 这里可以更新视频源
+                    videoPlayer.src = `https://s.coze.cn/video/sample-video-${Date.now()}.mp4`;
+                    videoPlayer.load();
+                }, 5000);
+            });
+
+            // 关闭弹窗
+            const closeModalBtn = document.querySelector('#close-modal-btn');
+            const cancelBtn = document.querySelector('#cancel-btn');
+            const modalBackdrop = document.querySelector('#modal-backdrop');
+
+            function closeModal() {
+                window.history.back();
+            }
+
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+
+            // 点击背景关闭弹窗
+            modalBackdrop.addEventListener('click', function(e) {
+                if (e.target === modalBackdrop) {
+                    closeModal();
+                }
+            });
+
+            // 完成编辑
+            const completeBtn = document.querySelector('#complete-edit-btn');
+            completeBtn.addEventListener('click', function() {
+                // 收集所有编辑信息
+                const finalData = {
+                    storyboardId: storyboardId,
+                    videoSubject: document.querySelector('#video-subject').value,
+                    videoAction: document.querySelector('#video-action').value,
+                    videoCamera: document.querySelector('#video-camera').value,
+                    chatHistory: Array.from(chatHistory.children).map(msg => {
+                        const isUser = msg.classList.contains('user-message');
+                        return {
+                            sender: isUser ? 'user' : 'ai',
+                            content: msg.textContent.trim()
+                        };
+                    })
+                };
+                
+                // 显示保存状态
+                completeBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>保存中...';
+                completeBtn.disabled = true;
+                
+                // 模拟保存过程
+                setTimeout(() => {
+                    // 跳转到动态漫制作第五步
+                    window.location.href = `P-DYNAMIC_CREATE_STEP5.html?storyboardId=${storyboardId}&updated=true`;
+                }, 1500);
+            });
+
+            // ESC键关闭弹窗
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // 初始化时滚动到对话历史底部
+            setTimeout(() => {
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }, 100);
+        });
+    </script>
+</body>
+</html>

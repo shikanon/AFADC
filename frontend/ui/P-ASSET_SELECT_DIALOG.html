@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择资产 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .asset-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .asset-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .asset-card.selected {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        
+        .asset-preview {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .asset-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        .asset-card:hover .asset-overlay {
+            opacity: 1;
+        }
+        
+        .asset-type-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .type-image {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+        
+        .type-audio {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .type-video {
+            background-color: #FCE7F3;
+            color: #BE185D;
+        }
+        
+        .subtype-character {
+            background-color: #E0E7FF;
+            color: #3730A3;
+        }
+        
+        .subtype-scene {
+            background-color: #C7D2FE;
+            color: #5B21B6;
+        }
+        
+        .subtype-bgm {
+            background-color: #BBF7D0;
+            color: #166534;
+        }
+        
+        .subtype-voice {
+            background-color: #A7F3D0;
+            color: #065F46;
+        }
+        
+        .subtype-effect {
+            background-color: #FDE68A;
+            color: #92400E;
+        }
+        
+        .search-highlight {
+            background-color: #FEF3C7;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 模态弹窗背景 -->
+    <div id="modal-backdrop" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+        <!-- 弹窗主体 -->
+        <div id="asset-select-modal" class="bg-white rounded-lg shadow-modal w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <!-- 弹窗头部 -->
+            <div id="modal-header" class="flex items-center justify-between p-6 border-b border-border-light">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-search text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold text-text-primary">选择资产</h2>
+                </div>
+                <button id="close-modal-btn" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-times text-text-secondary"></i>
+                </button>
+            </div>
+
+            <!-- 搜索和筛选区域 -->
+            <div id="search-filter-section" class="p-6 border-b border-border-light">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <!-- 搜索框 -->
+                    <div class="flex-1 lg:max-w-md">
+                        <div class="relative">
+                            <input type="text" id="asset-search" placeholder="搜索资产名称、标签..." 
+                                   class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- 筛选条件 -->
+                    <div class="flex flex-wrap items-center space-x-3">
+                        <select id="type-filter" class="px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">全部类型</option>
+                            <option value="image">图片</option>
+                            <option value="audio">音频</option>
+                            <option value="video">视频</option>
+                        </select>
+                        <select id="subtype-filter" class="px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">全部子类型</option>
+                            <option value="character">角色IP</option>
+                            <option value="scene">场景</option>
+                            <option value="bgm">音乐BGM</option>
+                            <option value="voice">声音克隆</option>
+                            <option value="effect">视频特效</option>
+                        </select>
+                        <button id="clear-filters-btn" class="px-3 py-2 text-text-secondary hover:text-text-primary transition-colors">
+                            <i class="fas fa-times mr-1"></i>清除筛选
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 资产列表区域 -->
+            <div id="asset-list-section" class="flex-1 overflow-hidden">
+                <div class="p-6 h-full overflow-y-auto">
+                    <!-- 选中状态提示 -->
+                    <div id="selection-info" class="mb-4 p-3 bg-bg-secondary rounded-lg hidden">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-text-secondary">已选择 <span id="selected-count" class="font-medium text-primary">0</span> 个资产</span>
+                            <button id="clear-selection-btn" class="text-sm text-text-secondary hover:text-danger transition-colors">
+                                <i class="fas fa-times mr-1"></i>取消选择
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 资产网格 -->
+                    <div id="asset-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        <!-- 资产卡片将通过JavaScript动态生成 -->
+                    </div>
+
+                    <!-- 无结果提示 -->
+                    <div id="no-results" class="text-center py-12 hidden">
+                        <i class="fas fa-search text-4xl text-text-secondary mb-4"></i>
+                        <h3 class="text-lg font-medium text-text-primary mb-2">未找到匹配的资产</h3>
+                        <p class="text-text-secondary">请尝试调整搜索关键词或筛选条件</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 弹窗底部操作按钮 -->
+            <div id="modal-footer" class="flex items-center justify-end space-x-3 p-6 border-t border-border-light bg-bg-secondary">
+                <button id="cancel-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-white transition-colors">
+                    取消
+                </button>
+                <button id="confirm-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50" disabled>
+                    <i class="fas fa-check mr-2"></i>确定选择 (<span id="confirm-count">0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟资产数据
+        const mockAssets = [
+            {
+                id: 'asset-001',
+                name: '魔法少女立绘',
+                type: 'image',
+                subtype: 'character',
+                url: 'https://s.coze.cn/image/RZUHCmZ3Yf4/',
+                tags: ['魔法', '少女', '立绘'],
+                uploader: '张设计师',
+                uploadTime: '2024-01-15'
+            },
+            {
+                id: 'asset-002',
+                name: '未来都市背景',
+                type: 'image',
+                subtype: 'scene',
+                url: 'https://s.coze.cn/image/fS5ZZ8SEQ7c/',
+                tags: ['未来', '都市', '背景'],
+                uploader: '李动画师',
+                uploadTime: '2024-01-14'
+            },
+            {
+                id: 'asset-003',
+                name: '温馨钢琴曲',
+                type: 'audio',
+                subtype: 'bgm',
+                url: 'https://s.coze.cn/audio/sample1.mp3',
+                tags: ['钢琴', '温馨', '背景音乐'],
+                uploader: '王音乐人',
+                uploadTime: '2024-01-13'
+            },
+            {
+                id: 'asset-004',
+                name: '甜美女声克隆',
+                type: 'audio',
+                subtype: 'voice',
+                url: 'https://s.coze.cn/audio/voice1.mp3',
+                tags: ['女声', '甜美', '克隆'],
+                uploader: '陈配音师',
+                uploadTime: '2024-01-12'
+            },
+            {
+                id: 'asset-005',
+                name: '火焰特效',
+                type: 'video',
+                subtype: 'effect',
+                url: 'https://s.coze.cn/video/effect1.mp4',
+                tags: ['火焰', '特效', '动画'],
+                uploader: '特效师',
+                uploadTime: '2024-01-11'
+            },
+            {
+                id: 'asset-006',
+                name: '校园少女立绘',
+                type: 'image',
+                subtype: 'character',
+                url: 'https://s.coze.cn/image/nHEFdHx37tY/',
+                tags: ['校园', '少女', '立绘'],
+                uploader: '张设计师',
+                uploadTime: '2024-01-10'
+            },
+            {
+                id: 'asset-007',
+                name: '森林场景',
+                type: 'image',
+                subtype: 'scene',
+                url: 'https://s.coze.cn/image/8wIoJymFFuY/',
+                tags: ['森林', '自然', '场景'],
+                uploader: '李动画师',
+                uploadTime: '2024-01-09'
+            },
+            {
+                id: 'asset-008',
+                name: '激昂交响乐',
+                type: 'audio',
+                subtype: 'bgm',
+                url: 'https://s.coze.cn/audio/sample2.mp3',
+                tags: ['交响乐', '激昂', '背景音乐'],
+                uploader: '王音乐人',
+                uploadTime: '2024-01-08'
+            },
+            {
+                id: 'asset-009',
+                name: '成熟男声克隆',
+                type: 'audio',
+                subtype: 'voice',
+                url: 'https://s.coze.cn/audio/voice2.mp3',
+                tags: ['男声', '成熟', '克隆'],
+                uploader: '陈配音师',
+                uploadTime: '2024-01-07'
+            },
+            {
+                id: 'asset-010',
+                name: '闪电特效',
+                type: 'video',
+                subtype: 'effect',
+                url: 'https://s.coze.cn/video/effect2.mp4',
+                tags: ['闪电', '特效', '动画'],
+                uploader: '特效师',
+                uploadTime: '2024-01-06'
+            },
+            {
+                id: 'asset-011',
+                name: '古风美人立绘',
+                type: 'image',
+                subtype: 'character',
+                url: 'https://s.coze.cn/image/SewzwtP2qbk/',
+                tags: ['古风', '美人', '立绘'],
+                uploader: '张设计师',
+                uploadTime: '2024-01-05'
+            },
+            {
+                id: 'asset-012',
+                name: '星空背景',
+                type: 'image',
+                subtype: 'scene',
+                url: 'https://s.coze.cn/image/diO_lCBxDs4/',
+                tags: ['星空', '夜晚', '背景'],
+                uploader: '李动画师',
+                uploadTime: '2024-01-04'
+            },
+            {
+                id: 'asset-013',
+                name: '轻松吉他曲',
+                type: 'audio',
+                subtype: 'bgm',
+                url: 'https://s.coze.cn/audio/sample3.mp3',
+                tags: ['吉他', '轻松', '背景音乐'],
+                uploader: '王音乐人',
+                uploadTime: '2024-01-03'
+            },
+            {
+                id: 'asset-014',
+                name: '可爱童声克隆',
+                type: 'audio',
+                subtype: 'voice',
+                url: 'https://s.coze.cn/audio/voice3.mp3',
+                tags: ['童声', '可爱', '克隆'],
+                uploader: '陈配音师',
+                uploadTime: '2024-01-02'
+            },
+            {
+                id: 'asset-015',
+                name: '雪花特效',
+                type: 'video',
+                subtype: 'effect',
+                url: 'https://s.coze.cn/video/effect3.mp4',
+                tags: ['雪花', '特效', '动画'],
+                uploader: '特效师',
+                uploadTime: '2024-01-01'
+            }
+        ];
+
+        let selectedAssets = [];
+        let filteredAssets = [...mockAssets];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数的辅助函数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取URL参数
+            const params = getUrlParams();
+            
+            // 如果有指定资产类型，预先筛选
+            if(params.asset_type) {
+                filteredAssets = mockAssets.filter(asset => asset.type === params.asset_type);
+                document.querySelector('#type-filter').value = params.asset_type;
+            }
+
+            // 渲染资产网格
+            renderAssetGrid();
+
+            // 搜索功能
+            const assetSearch = document.querySelector('#asset-search');
+            assetSearch.addEventListener('input', function() {
+                filterAssets();
+            });
+
+            // 筛选功能
+            const typeFilter = document.querySelector('#type-filter');
+            const subtypeFilter = document.querySelector('#subtype-filter');
+            
+            typeFilter.addEventListener('change', function() {
+                // 根据类型筛选子类型选项
+                const selectedType = this.value;
+                const subtypeSelect = document.querySelector('#subtype-filter');
+                
+                // 重置子类型选择
+                subtypeSelect.value = '';
+                
+                // 禁用不相关的子类型选项
+                const subtypeOptions = subtypeSelect.querySelectorAll('option');
+                subtypeOptions.forEach(option => {
+                    if(option.value === '') return; // 保留"全部子类型"选项
+                    
+                    const isRelevant = (selectedType === 'image' && (option.value === 'character' || option.value === 'scene')) ||
+                                     (selectedType === 'audio' && (option.value === 'bgm' || option.value === 'voice')) ||
+                                     (selectedType === 'video' && option.value === 'effect') ||
+                                     selectedType === '';
+                    
+                    option.disabled = !isRelevant;
+                    if(!isRelevant) option.style.display = 'none';
+                    else option.style.display = 'block';
+                });
+                
+                filterAssets();
+            });
+
+            subtypeFilter.addEventListener('change', function() {
+                filterAssets();
+            });
+
+            // 清除筛选
+            const clearFiltersBtn = document.querySelector('#clear-filters-btn');
+            clearFiltersBtn.addEventListener('click', function() {
+                assetSearch.value = '';
+                typeFilter.value = '';
+                subtypeFilter.value = '';
+                
+                // 启用所有子类型选项
+                const subtypeOptions = subtypeFilter.querySelectorAll('option');
+                subtypeOptions.forEach(option => {
+                    option.disabled = false;
+                    option.style.display = 'block';
+                });
+                
+                filterAssets();
+            });
+
+            // 清除选择
+            const clearSelectionBtn = document.querySelector('#clear-selection-btn');
+            clearSelectionBtn.addEventListener('click', function() {
+                selectedAssets = [];
+                updateSelection();
+                renderAssetGrid();
+            });
+
+            // 关闭弹窗
+            const closeModalBtn = document.querySelector('#close-modal-btn');
+            const cancelBtn = document.querySelector('#cancel-btn');
+            
+            closeModalBtn.addEventListener('click', function() {
+                closeModal();
+            });
+            
+            cancelBtn.addEventListener('click', function() {
+                closeModal();
+            });
+
+            // 点击背景关闭弹窗
+            const modalBackdrop = document.querySelector('#modal-backdrop');
+            modalBackdrop.addEventListener('click', function(e) {
+                if (e.target === modalBackdrop) {
+                    closeModal();
+                }
+            });
+
+            // 确定选择
+            const confirmBtn = document.querySelector('#confirm-btn');
+            confirmBtn.addEventListener('click', function() {
+                if (selectedAssets.length > 0) {
+                    confirmSelection();
+                }
+            });
+
+            // ESC键关闭弹窗
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // 筛选资产函数
+            function filterAssets() {
+                const searchTerm = assetSearch.value.toLowerCase();
+                const typeValue = typeFilter.value;
+                const subtypeValue = subtypeFilter.value;
+
+                filteredAssets = mockAssets.filter(asset => {
+                    const matchesSearch = !searchTerm || 
+                        asset.name.toLowerCase().includes(searchTerm) ||
+                        asset.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                    
+                    const matchesType = !typeValue || asset.type === typeValue;
+                    const matchesSubtype = !subtypeValue || asset.subtype === subtypeValue;
+
+                    return matchesSearch && matchesType && matchesSubtype;
+                });
+
+                renderAssetGrid();
+            }
+
+            // 渲染资产网格
+            function renderAssetGrid() {
+                const assetGrid = document.querySelector('#asset-grid');
+                const noResults = document.querySelector('#no-results');
+
+                if (filteredAssets.length === 0) {
+                    assetGrid.innerHTML = '';
+                    noResults.classList.remove('hidden');
+                    return;
+                }
+
+                noResults.classList.add('hidden');
+
+                assetGrid.innerHTML = filteredAssets.map(asset => {
+                    const isSelected = selectedAssets.includes(asset.id);
+                    const typeClass = `type-${asset.type}`;
+                    const subtypeClass = `subtype-${asset.subtype}`;
+                    
+                    let previewContent = '';
+                    if (asset.type === 'image') {
+                        previewContent = `<img src="${asset.url}" alt="${asset.name}" class="w-full h-32 object-cover rounded-lg" data-category="艺术">`;
+                    } else if (asset.type === 'audio') {
+                        previewContent = `
+                            <div class="w-full h-32 bg-bg-secondary rounded-lg flex items-center justify-center">
+                                <i class="fas fa-music text-4xl text-text-secondary"></i>
+                            </div>
+                        `;
+                    } else if (asset.type === 'video') {
+                        previewContent = `
+                            <div class="w-full h-32 bg-bg-secondary rounded-lg flex items-center justify-center">
+                                <i class="fas fa-play-circle text-4xl text-text-secondary"></i>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="asset-card bg-white rounded-lg border border-border-light p-3 ${isSelected ? 'selected' : ''}" data-asset-id="${asset.id}">
+                            <div class="asset-preview mb-3">
+                                ${previewContent}
+                                <div class="asset-overlay">
+                                    <button class="preview-btn p-2 bg-white bg-opacity-90 rounded-lg hover:bg-opacity-100 transition-colors">
+                                        <i class="fas fa-eye text-text-primary"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-sm font-medium text-text-primary truncate" title="${asset.name}">${asset.name}</h3>
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="asset-type-badge ${typeClass}">${getTypeName(asset.type)}</span>
+                                    <span class="asset-type-badge ${subtypeClass}">${getSubTypeName(asset.subtype)}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs text-text-secondary">
+                                    <span>${asset.uploader}</span>
+                                    <span>${asset.uploadTime}</span>
+                                </div>
+                            </div>
+                            ${isSelected ? '<div class="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center"><i class="fas fa-check text-white text-xs"></i></div>' : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                // 为资产卡片添加点击事件
+                const assetCards = document.querySelectorAll('.asset-card');
+                assetCards.forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        // 如果点击的是预览按钮，不触发选择
+                        if (e.target.closest('.preview-btn')) {
+                            return;
+                        }
+                        
+                        const assetId = this.dataset.assetId;
+                        toggleAssetSelection(assetId);
+                    });
+                });
+
+                // 为预览按钮添加点击事件
+                const previewBtns = document.querySelectorAll('.preview-btn');
+                previewBtns.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const assetCard = this.closest('.asset-card');
+                        const assetId = assetCard.dataset.assetId;
+                        previewAsset(assetId);
+                    });
+                });
+            }
+
+            // 切换资产选择状态
+            function toggleAssetSelection(assetId) {
+                const index = selectedAssets.indexOf(assetId);
+                if (index > -1) {
+                    selectedAssets.splice(index, 1);
+                } else {
+                    selectedAssets.push(assetId);
+                }
+                
+                updateSelection();
+                renderAssetGrid();
+            }
+
+            // 更新选择状态显示
+            function updateSelection() {
+                const selectionInfo = document.querySelector('#selection-info');
+                const selectedCount = document.querySelector('#selected-count');
+                const confirmBtn = document.querySelector('#confirm-btn');
+                const confirmCount = document.querySelector('#confirm-count');
+
+                if (selectedAssets.length > 0) {
+                    selectionInfo.classList.remove('hidden');
+                    selectedCount.textContent = selectedAssets.length;
+                    confirmBtn.disabled = false;
+                    confirmCount.textContent = selectedAssets.length;
+                } else {
+                    selectionInfo.classList.add('hidden');
+                    confirmBtn.disabled = true;
+                    confirmCount.textContent = '0';
+                }
+            }
+
+            // 预览资产
+            function previewAsset(assetId) {
+                const asset = mockAssets.find(a => a.id === assetId);
+                if (!asset) return;
+
+                if (asset.type === 'image') {
+                    // 图片预览
+                    const modal = window.open('', '_blank', 'width=800,height=600');
+                    modal.document.write(`
+                        <html>
+                            <head><title>预览 - ${asset.name}</title></head>
+                            <body style="margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000;">
+                                <img src="${asset.url}" alt="${asset.name}" style="max-width:90%; max-height:90%;">
+                            </body>
+                        </html>
+                    `);
+                } else if (asset.type === 'audio') {
+                    // 音频预览
+                    const audio = new Audio(asset.url);
+                    audio.play().catch(error => {
+                        console.log('音频播放失败:', error);
+                        alert('音频播放失败，请检查浏览器设置');
+                    });
+                } else if (asset.type === 'video') {
+                    // 视频预览
+                    const modal = window.open('', '_blank', 'width=800,height=600');
+                    modal.document.write(`
+                        <html>
+                            <head><title>预览 - ${asset.name}</title></head>
+                            <body style="margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000;">
+                                <video controls style="max-width:90%; max-height:90%;">
+                                    <source src="${asset.url}" type="video/mp4">
+                                    您的浏览器不支持视频播放。
+                                </video>
+                            </body>
+                        </html>
+                    `);
+                }
+            }
+
+            // 确认选择
+            function confirmSelection() {
+                // 获取选中的资产详情
+                const selectedAssetDetails = selectedAssets.map(id => 
+                    mockAssets.find(asset => asset.id === id)
+                ).filter(Boolean);
+
+                // 将选中的资产信息存储到sessionStorage，供父页面使用
+                sessionStorage.setItem('selectedAssets', JSON.stringify(selectedAssetDetails));
+                
+                // 关闭弹窗并返回父页面
+                closeModal();
+            }
+
+            // 关闭弹窗
+            function closeModal() {
+                // 检查是否有父页面
+                if (window.opener) {
+                    // 如果是通过window.open打开的，通知父页面并关闭
+                    window.opener.postMessage({
+                        type: 'ASSET_SELECTED',
+                        assets: selectedAssets
+                    }, '*');
+                    window.close();
+                } else {
+                    // 如果是在同一窗口中，返回上一页或指定页面
+                    // 这里可以根据实际需求调整目标页面
+                    const referrer = document.referrer;
+                    if (referrer && referrer.includes('P-STATIC_CREATE_STEP2.html')) {
+                        window.location.href = 'P-STATIC_CREATE_STEP2.html';
+                    } else if (referrer && referrer.includes('P-STATIC_CREATE_STEP3.html')) {
+                        window.location.href = 'P-STATIC_CREATE_STEP3.html';
+                    } else if (referrer && referrer.includes('P-DYNAMIC_CREATE_STEP2.html')) {
+                        window.location.href = 'P-DYNAMIC_CREATE_STEP2.html';
+                    } else if (referrer && referrer.includes('P-DYNAMIC_CREATE_STEP3.html')) {
+                        window.location.href = 'P-DYNAMIC_CREATE_STEP3.html';
+                    } else {
+                        window.history.back();
+                    }
+                }
+            }
+
+            // 获取类型显示名称
+            function getTypeName(type) {
+                const typeNames = {
+                    'image': '图片',
+                    'audio': '音频',
+                    'video': '视频'
+                };
+                return typeNames[type] || type;
+            }
+
+            // 获取子类型显示名称
+            function getSubTypeName(subtype) {
+                const subtypeNames = {
+                    'character': '角色IP',
+                    'scene': '场景',
+                    'bgm': '音乐BGM',
+                    'voice': '声音克隆',
+                    'effect': '视频特效'
+                };
+                return subtypeNames[subtype] || subtype;
+            }
+        });
+    </script>
+</body>
+</html>

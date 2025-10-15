@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI静态漫制作 - 确认角色 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .step-indicator {
+            position: relative;
+        }
+        
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 12px;
+            width: 2px;
+            height: calc(100% - 40px);
+            background-color: #E2E8F0;
+        }
+        
+        .step-item {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-item.active::before {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+        }
+        
+        .step-item.completed::before {
+            background-color: #22C55E;
+            border-color: #22C55E;
+        }
+        
+        .step-item::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #E2E8F0;
+            background-color: white;
+        }
+        
+        .step-item.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 14px;
+            left: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .character-card {
+            transition: all 0.3s ease;
+        }
+        
+        .character-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .voice-preview {
+            display: none;
+        }
+        
+        .voice-preview.active {
+            display: block;
+        }
+        
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .range-slider {
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .range-slider input {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bars text-text-secondary"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-magic text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-text-primary">AI漫剧速成工场</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框 -->
+            <div class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <input type="text" id="global-search" placeholder="搜索项目、资产..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：通知和用户 -->
+            <div class="flex items-center space-x-4">
+                <button id="notification-btn" class="relative p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bell text-text-secondary"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/7LxcCtoXWE8/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                    <span class="text-sm font-medium text-text-primary">张设计师</span>
+                    <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 bg-white border-r border-border-light sidebar-expanded transition-all duration-300 z-40">
+        <nav class="p-4 space-y-2">
+            <a href="#" id="nav-projects" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-white">
+                <i class="fas fa-folder text-lg"></i>
+                <span class="sidebar-text">项目管理</span>
+            </a>
+            <a href="#" id="nav-assets" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-images text-lg"></i>
+                <span class="sidebar-text">资产管理</span>
+            </a>
+            <a href="#" id="nav-users" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-users text-lg"></i>
+                <span class="sidebar-text">用户管理</span>
+            </a>
+            <a href="#" id="nav-plans" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-crown text-lg"></i>
+                <span class="sidebar-text">套餐管理</span>
+            </a>
+            <a href="#" id="nav-api-keys" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-key text-lg"></i>
+                <span class="sidebar-text">API密钥设置</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6">
+            <!-- 页面头部 -->
+            <div id="page-header" class="flex items-center justify-between mb-6">
+                <div>
+                    <nav class="text-sm text-text-secondary mb-2">
+                        <span>首页</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span>项目管理</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span class="text-text-primary">AI静态漫制作</span>
+                    </nav>
+                    <h2 class="text-2xl font-semibold text-text-primary">AI静态漫制作 - 确认角色</h2>
+                </div>
+            </div>
+
+            <!-- 步骤指示器 -->
+            <div id="step-indicator" class="bg-white rounded-lg border border-border-light p-6 mb-6">
+                <div class="flex items-start space-x-6">
+                    <div class="step-indicator flex-1">
+                        <div class="step-item completed mb-4">
+                            <div class="ml-8">
+                                <h3 class="font-medium text-text-primary">基础信息设置</h3>
+                                <p class="text-sm text-text-secondary">设置剧本名称、画风等基础信息</p>
+                            </div>
+                        </div>
+                        <div class="step-item active mb-4">
+                            <div class="ml-8">
+                                <h3 class="font-medium text-primary">确认角色</h3>
+                                <p class="text-sm text-text-secondary">创建或选择角色IP形象，配置配音</p>
+                            </div>
+                        </div>
+                        <div class="step-item mb-4">
+                            <div class="ml-8">
+                                <h3 class="font-medium text-text-secondary">创建章节，生成分镜画面</h3>
+                                <p class="text-sm text-text-secondary">拆分剧本为分镜，生成画面</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="ml-8">
+                                <h3 class="font-medium text-text-secondary">合成最终视频</h3>
+                                <p class="text-sm text-text-secondary">配置背景音乐，生成完整视频</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 角色管理区域 -->
+            <div id="character-management" class="space-y-6">
+                <!-- 角色列表 -->
+                <div id="character-list" class="space-y-4">
+                    <h3 class="text-lg font-semibold text-text-primary">角色设置</h3>
+                    
+                    <!-- 角色卡片1 -->
+                    <div class="character-card bg-white rounded-lg border border-border-light p-6">
+                        <div class="flex items-start space-x-6">
+                            <!-- 角色形象区域 -->
+                            <div class="flex-1 max-w-md">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-medium text-text-primary">主角 - 艾莉丝</h4>
+                                    <button class="text-danger hover:text-red-600 text-sm" id="delete-character-1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- 角色形象预览 -->
+                                <div class="bg-bg-secondary rounded-lg p-4 mb-4">
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <img src="https://s.coze.cn/image/IT0dRq5_aSE/" 
+                                             alt="角色正面形象" class="w-full h-24 object-cover rounded-lg" data-category="人物">
+                                        <img src="https://s.coze.cn/image/z0Zf2vQjCl4/" 
+                                             alt="角色侧面形象" class="w-full h-24 object-cover rounded-lg" data-category="人物">
+                                        <img src="https://s.coze.cn/image/V8ibaATU6XQ/" 
+                                             alt="角色背面形象" class="w-full h-24 object-cover rounded-lg" data-category="人物">
+                                    </div>
+                                </div>
+                                
+                                <!-- 角色操作按钮 -->
+                                <div class="flex space-x-3">
+                                    <button id="generate-character-1" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                                        <i class="fas fa-magic mr-2"></i>重新生成
+                                    </button>
+                                    <button id="select-character-1" class="flex-1 px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors text-sm">
+                                        <i class="fas fa-images mr-2"></i>选择资产
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 配音配置区域 -->
+                            <div class="flex-1">
+                                <h5 class="font-medium text-text-primary mb-4">配音配置</h5>
+                                
+                                <!-- 音色选择 -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-text-secondary mb-2">音色选择</label>
+                                    <div class="flex space-x-2">
+                                        <select id="voice-select-1" class="flex-1 px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <option value="voice1">甜美少女音</option>
+                                            <option value="voice2">温柔女声</option>
+                                            <option value="voice3">活泼少女音</option>
+                                            <option value="voice4">成熟女声</option>
+                                            <option value="custom">自定义声音</option>
+                                        </select>
+                                        <button id="preview-voice-1" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 音频速率 -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-text-secondary mb-2">音频速率</label>
+                                    <div class="audio-controls">
+                                        <span class="text-sm text-text-secondary">0.5x</span>
+                                        <input type="range" id="speed-slider-1" min="0.5" max="2.0" step="0.1" value="1.0" 
+                                               class="range-slider">
+                                        <span class="text-sm text-text-secondary">2.0x</span>
+                                        <span id="speed-value-1" class="text-sm font-medium text-text-primary">1.0x</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 试听文本 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-text-secondary mb-2">试听文本</label>
+                                    <textarea id="preview-text-1" rows="2" 
+                                              class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                                              placeholder="请输入试听文本...">你好，我是艾莉丝，很高兴认识你！</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 角色卡片2 -->
+                    <div class="character-card bg-white rounded-lg border border-border-light p-6">
+                        <div class="flex items-start space-x-6">
+                            <!-- 角色形象区域 -->
+                            <div class="flex-1 max-w-md">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-medium text-text-primary">配角 - 魔法师梅林</h4>
+                                    <button class="text-danger hover:text-red-600 text-sm" id="delete-character-2">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- 角色形象预览 -->
+                                <div class="bg-bg-secondary rounded-lg p-4 mb-4">
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <img src="https://s.coze.cn/image/w85NtxtWPjg/" 
+                                             alt="角色正面形象" class="w-full h-24 object-cover rounded-lg" data-category="人物">
+                                        <img src="https://s.coze.cn/image/koHrRVSxh0s/" 
+                                             alt="角色侧面形象" class="w-full h-24 object-cover rounded-lg" data-category="人物">
+                                        <img src="https://s.coze.cn/image/yRUuoFz2puI/" 
+                                             alt="角色背面形象" class="w-full h-24 object-cover rounded-lg" data-category="人物">
+                                    </div>
+                                </div>
+                                
+                                <!-- 角色操作按钮 -->
+                                <div class="flex space-x-3">
+                                    <button id="generate-character-2" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                                        <i class="fas fa-magic mr-2"></i>重新生成
+                                    </button>
+                                    <button id="select-character-2" class="flex-1 px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors text-sm">
+                                        <i class="fas fa-images mr-2"></i>选择资产
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 配音配置区域 -->
+                            <div class="flex-1">
+                                <h5 class="font-medium text-text-primary mb-4">配音配置</h5>
+                                
+                                <!-- 音色选择 -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-text-secondary mb-2">音色选择</label>
+                                    <div class="flex space-x-2">
+                                        <select id="voice-select-2" class="flex-1 px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                            <option value="voice5">沉稳男声</option>
+                                            <option value="voice6">温和男声</option>
+                                            <option value="voice7">威严男声</option>
+                                            <option value="voice8">苍老男声</option>
+                                            <option value="custom">自定义声音</option>
+                                        </select>
+                                        <button id="preview-voice-2" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 音频速率 -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-text-secondary mb-2">音频速率</label>
+                                    <div class="audio-controls">
+                                        <span class="text-sm text-text-secondary">0.5x</span>
+                                        <input type="range" id="speed-slider-2" min="0.5" max="2.0" step="0.1" value="0.9" 
+                                               class="range-slider">
+                                        <span class="text-sm text-text-secondary">2.0x</span>
+                                        <span id="speed-value-2" class="text-sm font-medium text-text-primary">0.9x</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 试听文本 -->
+                                <div>
+                                    <label class="block text-sm font-medium text-text-secondary mb-2">试听文本</label>
+                                    <textarea id="preview-text-2" rows="2" 
+                                              class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                                              placeholder="请输入试听文本...">欢迎来到魔法学院，年轻的学徒。</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 新增角色按钮 -->
+                <div class="text-center">
+                    <button id="add-character" class="px-6 py-3 border-2 border-dashed border-border-medium text-text-secondary rounded-lg hover:border-primary hover:text-primary transition-colors">
+                        <i class="fas fa-plus mr-2"></i>新增角色
+                    </button>
+                </div>
+                
+                <!-- 旁白配置 -->
+                <div class="bg-white rounded-lg border border-border-light p-6">
+                    <h3 class="text-lg font-semibold text-text-primary mb-4">旁白配置</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- 旁白音色选择 -->
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-2">旁白音色</label>
+                            <div class="flex space-x-2">
+                                <select id="narrator-voice-select" class="flex-1 px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="narrator1">温和旁白</option>
+                                    <option value="narrator2">庄重旁白</option>
+                                    <option value="narrator3">亲切旁白</option>
+                                    <option value="narrator4">神秘旁白</option>
+                                    <option value="custom">自定义声音</option>
+                                </select>
+                                <button id="preview-narrator-voice" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 旁白音频速率 -->
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-2">旁白速率</label>
+                            <div class="audio-controls">
+                                <span class="text-sm text-text-secondary">0.5x</span>
+                                <input type="range" id="narrator-speed-slider" min="0.5" max="2.0" step="0.1" value="1.0" 
+                                       class="range-slider">
+                                <span class="text-sm text-text-secondary">2.0x</span>
+                                <span id="narrator-speed-value" class="text-sm font-medium text-text-primary">1.0x</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 旁白试听文本 -->
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-text-secondary mb-2">旁白试听文本</label>
+                        <textarea id="narrator-preview-text" rows="2" 
+                                  class="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                                  placeholder="请输入旁白试听文本...">在遥远的魔法王国，有一所古老的魔法学院...</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 操作按钮区 -->
+            <div id="action-buttons" class="flex items-center justify-end space-x-4 mt-8">
+                <button id="prev-step" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>上一步
+                </button>
+                <button id="save-draft" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-save mr-2"></i>保存草稿
+                </button>
+                <button id="next-step" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    下一步<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 音频播放器（隐藏） -->
+    <audio id="audio-player" class="hidden"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏折叠功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+            
+            // 音频速率滑块更新
+            const speedSliders = document.querySelectorAll('[id^="speed-slider-"], #narrator-speed-slider');
+            speedSliders.forEach(slider => {
+                slider.addEventListener('input', function() {
+                    const valueDisplay = this.id.includes('narrator') 
+                        ? document.querySelector('#narrator-speed-value')
+                        : document.querySelector(`#speed-value-${this.id.split('-')[2]}`);
+                    valueDisplay.textContent = this.value + 'x';
+                });
+            });
+            
+            // 音频试听功能
+            const previewButtons = document.querySelectorAll('[id^="preview-voice-"], #preview-narrator-voice');
+            const audioPlayer = document.querySelector('#audio-player');
+            
+            previewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('需要调用第三方接口实现语音合成和播放功能');
+                    
+                    // 模拟播放状态
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('fa-play')) {
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-pause');
+                        
+                        // 模拟播放完成
+                        setTimeout(() => {
+                            icon.classList.remove('fa-pause');
+                            icon.classList.add('fa-play');
+                        }, 2000);
+                    } else {
+                        icon.classList.remove('fa-pause');
+                        icon.classList.add('fa-play');
+                    }
+                });
+            });
+            
+            // 角色生成功能
+            const generateButtons = document.querySelectorAll('[id^="generate-character-"]');
+            generateButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('需要调用AI接口重新生成角色形象');
+                    
+                    // 模拟生成过程
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                    }, 3000);
+                });
+            });
+            
+            // 选择角色资产功能
+            const selectButtons = document.querySelectorAll('[id^="select-character-"]');
+            selectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('打开资产选择弹窗选择角色形象');
+                    // 实际实现中应该打开 P-ASSET_SELECT_DIALOG
+                });
+            });
+            
+            // 删除角色功能
+            const deleteButtons = document.querySelectorAll('[id^="delete-character-"]');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const characterId = this.id.split('-')[2];
+                    if (confirm('确定要删除这个角色吗？')) {
+                        console.log(`删除角色 ${characterId}`);
+                        this.closest('.character-card').remove();
+                    }
+                });
+            });
+            
+            // 新增角色功能
+            document.querySelector('#add-character').addEventListener('click', function() {
+                console.log('添加新角色');
+                // 实际实现中应该打开角色创建弹窗或动态添加新的角色卡片
+            });
+            
+            // 页面跳转功能
+            document.querySelector('#prev-step').addEventListener('click', function() {
+                window.location.href = 'P-STATIC_CREATE_STEP1.html';
+            });
+            
+            document.querySelector('#next-step').addEventListener('click', function() {
+                window.location.href = 'P-STATIC_CREATE_STEP3.html';
+            });
+            
+            document.querySelector('#save-draft').addEventListener('click', function() {
+                console.log('保存草稿');
+                window.location.href = 'P-PROJECT_MANAGE.html';
+            });
+            
+            // 导航菜单点击事件
+            document.querySelector('#nav-projects').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PROJECT_MANAGE.html';
+            });
+            
+            document.querySelector('#nav-assets').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-ASSET_MANAGE.html';
+            });
+            
+            document.querySelector('#nav-users').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-USER_MANAGE.html';
+            });
+            
+            document.querySelector('#nav-plans').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PLAN_MANAGE.html';
+            });
+            
+            document.querySelector('#nav-api-keys').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-API_KEY_SETTING.html';
+            });
+            
+            // 响应式处理
+            function handleResize() {
+                const width = window.innerWidth;
+                
+                if (width < 1024 && !sidebarCollapsed) {
+                    // 小屏幕自动折叠侧边栏
+                    sidebarToggle.click();
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化检查
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI动态漫制作 - 生成分镜视频 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .step-indicator {
+            position: relative;
+        }
+        
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 12px;
+            width: 2px;
+            height: calc(100% - 40px);
+            background-color: #E2E8F0;
+        }
+        
+        .step-item {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-item.active::before {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+        }
+        
+        .step-item.completed::before {
+            background-color: #22C55E;
+            border-color: #22C55E;
+        }
+        
+        .step-item::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #E2E8F0;
+            background-color: white;
+        }
+        
+        .step-item.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 14px;
+            left: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .video-player {
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 16/9;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+        }
+        
+        .form-input-focus:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 bg-white border-b border-border-light h-16 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bars text-text-secondary"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-magic text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-text-primary">AI漫剧速成工场</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框 -->
+            <div class="flex-1 max-w-md mx-8">
+                <div class="relative">
+                    <input type="text" id="global-search" placeholder="搜索项目、资产..." 
+                           class="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：通知和用户 -->
+            <div class="flex items-center space-x-4">
+                <button id="notification-btn" class="relative p-2 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-bell text-text-secondary"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/fDhLDil1bQI/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full" data-category="人物">
+                    <span class="text-sm font-medium text-text-primary">张设计师</span>
+                    <i class="fas fa-chevron-down text-xs text-text-secondary"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 bg-white border-r border-border-light sidebar-expanded transition-all duration-300 z-40">
+        <nav class="p-4 space-y-2">
+            <a href="#" id="nav-projects" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-white">
+                <i class="fas fa-folder text-lg"></i>
+                <span class="sidebar-text">项目管理</span>
+            </a>
+            <a href="#" id="nav-assets" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-images text-lg"></i>
+                <span class="sidebar-text">资产管理</span>
+            </a>
+            <a href="#" id="nav-users" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-users text-lg"></i>
+                <span class="sidebar-text">用户管理</span>
+            </a>
+            <a href="#" id="nav-plans" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-crown text-lg"></i>
+                <span class="sidebar-text">套餐管理</span>
+            </a>
+            <a href="#" id="nav-api-keys" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <i class="fas fa-key text-lg"></i>
+                <span class="sidebar-text">API密钥设置</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6">
+            <!-- 页面头部 -->
+            <div id="page-header" class="flex items-center justify-between mb-6">
+                <div>
+                    <nav class="text-sm text-text-secondary mb-2">
+                        <span>首页</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span>项目管理</span>
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <span class="text-text-primary">AI动态漫制作</span>
+                    </nav>
+                    <h2 class="text-2xl font-semibold text-text-primary">AI动态漫制作 - 生成分镜视频</h2>
+                </div>
+            </div>
+
+            <!-- 步骤指示器 -->
+            <div id="step-indicator" class="flex items-start space-x-6 mb-8">
+                <div class="step-indicator flex-1">
+                    <div class="step-item completed mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-primary">基础信息设置</div>
+                            <div class="text-sm text-text-secondary">设置剧本名称、画风等</div>
+                        </div>
+                    </div>
+                    <div class="step-item completed mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-primary">确认角色</div>
+                            <div class="text-sm text-text-secondary">生成或选择角色形象</div>
+                        </div>
+                    </div>
+                    <div class="step-item completed mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-primary">章节管理</div>
+                            <div class="text-sm text-text-secondary">创建和编辑章节内容</div>
+                        </div>
+                    </div>
+                    <div class="step-item completed mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-primary">分镜脚本与画面生成</div>
+                            <div class="text-sm text-text-secondary">AI拆分剧本，生成画面</div>
+                        </div>
+                    </div>
+                    <div class="step-item active mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-primary">生成分镜视频</div>
+                            <div class="text-sm text-text-secondary">基于画面生成动态视频</div>
+                        </div>
+                    </div>
+                    <div class="step-item mb-4">
+                        <div class="ml-8">
+                            <div class="font-medium text-text-secondary">合成最终视频</div>
+                            <div class="text-sm text-text-secondary">添加音乐、字幕，合成视频</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 视频合成配置区 -->
+            <div id="video-config-section" class="bg-white rounded-lg border border-border-light p-6 mb-6">
+                <h3 class="text-lg font-semibold text-text-primary mb-4">视频合成配置</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 背景音乐选择 -->
+                    <div class="space-y-2">
+                        <label for="background-music" class="block text-sm font-medium text-text-primary">背景音乐</label>
+                        <select id="background-music" class="w-full px-3 py-2 border border-border-light rounded-lg form-input-focus">
+                            <option value="">无背景音乐</option>
+                            <option value="bgm-001">轻松愉快 - 春日序曲</option>
+                            <option value="bgm-002">神秘悬疑 - 暗夜追踪</option>
+                            <option value="bgm-003">温馨治愈 - 午后阳光</option>
+                            <option value="bgm-004">激昂热血 - 战斗进行曲</option>
+                            <option value="bgm-005">科幻未来 - 星际迷航</option>
+                        </select>
+                        <button id="preview-music" class="mt-2 px-3 py-1 text-sm text-primary border border-primary rounded hover:bg-blue-50 transition-colors">
+                            <i class="fas fa-play mr-1"></i>试听
+                        </button>
+                    </div>
+
+                    <!-- 字幕样式设置 -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-medium text-text-primary">字幕样式</h4>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label for="font-family" class="block text-sm text-text-secondary">字体</label>
+                                <select id="font-family" class="w-full px-3 py-2 border border-border-light rounded-lg form-input-focus">
+                                    <option value="PingFang SC">苹方</option>
+                                    <option value="Microsoft YaHei">微软雅黑</option>
+                                    <option value="SimHei">黑体</option>
+                                    <option value="SimSun">宋体</option>
+                                </select>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label for="font-size" class="block text-sm text-text-secondary">字号</label>
+                                <select id="font-size" class="w-full px-3 py-2 border border-border-light rounded-lg form-input-focus">
+                                    <option value="14">14px</option>
+                                    <option value="16" selected>16px</option>
+                                    <option value="18">18px</option>
+                                    <option value="20">20px</option>
+                                </select>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label for="font-color" class="block text-sm text-text-secondary">颜色</label>
+                                <input type="color" id="font-color" value="#FFFFFF" 
+                                       class="w-full h-8 border border-border-light rounded-lg cursor-pointer">
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label for="background-color" class="block text-sm text-text-secondary">背景色</label>
+                                <input type="color" id="background-color" value="#000000" 
+                                       class="w-full h-8 border border-border-light rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 视频预览区 -->
+            <div id="video-preview-section" class="bg-white rounded-lg border border-border-light p-6 mb-6">
+                <h3 class="text-lg font-semibold text-text-primary mb-4">视频预览</h3>
+                
+                <div class="flex flex-col lg:flex-row items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-6">
+                    <!-- 视频播放器 -->
+                    <div class="flex-1">
+                        <div class="relative">
+                            <video id="video-player" class="video-player" controls poster="https://s.coze.cn/image/Hj28FkwFykM/">
+                                <source src="https://s.coze.cn/image/SBag16H8k8g/" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div id="video-loading" class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center hidden">
+                                <div class="text-white text-center">
+                                    <i class="fas fa-spinner loading-spinner text-2xl mb-2"></i>
+                                    <div>视频生成中...</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 视频信息 -->
+                        <div class="mt-4 p-4 bg-bg-secondary rounded-lg">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <div class="text-text-secondary">分辨率</div>
+                                    <div class="text-text-primary font-medium">1920x1080</div>
+                                </div>
+                                <div>
+                                    <div class="text-text-secondary">时长</div>
+                                    <div class="text-text-primary font-medium">02:35</div>
+                                </div>
+                                <div>
+                                    <div class="text-text-secondary">格式</div>
+                                    <div class="text-text-primary font-medium">MP4</div>
+                                </div>
+                                <div>
+                                    <div class="text-text-secondary">大小</div>
+                                    <div class="text-text-primary font-medium">15.2 MB</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 视频状态和操作 -->
+                    <div class="w-full lg:w-64 space-y-4">
+                        <div class="p-4 bg-bg-secondary rounded-lg">
+                            <h4 class="font-medium text-text-primary mb-3">视频状态</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-text-secondary">分镜视频</span>
+                                    <span class="text-sm text-success font-medium">已完成</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-text-secondary">背景音乐</span>
+                                    <span class="text-sm text-success font-medium">已添加</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-text-secondary">字幕</span>
+                                    <span class="text-sm text-success font-medium">已生成</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <button id="generate-video-btn" class="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                                <i class="fas fa-magic mr-2"></i>生成最终视频
+                            </button>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="download-video-btn" class="px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                                    <i class="fas fa-download mr-1"></i>下载
+                                </button>
+                                <button id="jump-to-clip-btn" class="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-external-link-alt mr-1"></i>剪映
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div id="action-buttons" class="flex items-center justify-between">
+                <button id="prev-step-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>上一步
+                </button>
+                
+                <div class="flex items-center space-x-3">
+                    <button id="save-draft-btn" class="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors">
+                        <i class="fas fa-save mr-2"></i>保存草稿
+                    </button>
+                    <button id="next-step-btn" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors" disabled>
+                        下一步<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数的辅助函数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取URL参数
+            const params = getUrlParams();
+            const projectId = params.projectId || 'PROJ-001';
+
+            // 侧边栏折叠功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 背景音乐试听功能
+            const previewMusicBtn = document.querySelector('#preview-music');
+            const backgroundMusicSelect = document.querySelector('#background-music');
+            
+            previewMusicBtn.addEventListener('click', function() {
+                const selectedMusic = backgroundMusicSelect.value;
+                if (selectedMusic) {
+                    console.log('试听背景音乐:', selectedMusic);
+                    // 这里应该调用音频播放API
+                    alert('正在试听背景音乐...');
+                } else {
+                    alert('请先选择背景音乐');
+                }
+            });
+
+            // 生成最终视频功能
+            const generateVideoBtn = document.querySelector('#generate-video-btn');
+            const videoLoading = document.querySelector('#video-loading');
+            const videoPlayer = document.querySelector('#video-player');
+            
+            generateVideoBtn.addEventListener('click', function() {
+                // 显示加载状态
+                videoLoading.classList.remove('hidden');
+                generateVideoBtn.disabled = true;
+                generateVideoBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>生成中...';
+                
+                // 模拟视频生成过程
+                setTimeout(() => {
+                    videoLoading.classList.add('hidden');
+                    generateVideoBtn.disabled = false;
+                    generateVideoBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>重新生成';
+                    
+                    // 更新视频播放器
+                    videoPlayer.src = 'https://s.coze.cn/video/generated-video.mp4';
+                    videoPlayer.load();
+                    
+                    // 显示成功提示
+                    alert('视频生成完成！');
+                    
+                    // 跳转到项目管理页
+                    setTimeout(() => {
+                        window.location.href = `P-PROJECT_MANAGE.html?projectId=${projectId}`;
+                    }, 1000);
+                }, 5000); // 模拟5秒生成时间
+            });
+
+            // 下载视频功能
+            const downloadVideoBtn = document.querySelector('#download-video-btn');
+            downloadVideoBtn.addEventListener('click', function() {
+                const videoUrl = videoPlayer.src;
+                if (videoUrl) {
+                    console.log('下载视频:', videoUrl);
+                    // 创建下载链接
+                    const link = document.createElement('a');
+                    link.href = videoUrl;
+                    link.download = `dynamic-comic-${projectId}.mp4`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert('请先生成视频');
+                }
+            });
+
+            // 跳转剪映编辑功能
+            const jumpToClipBtn = document.querySelector('#jump-to-clip-btn');
+            jumpToClipBtn.addEventListener('click', function() {
+                const videoUrl = videoPlayer.src;
+                if (videoUrl) {
+                    console.log('跳转到剪映编辑:', videoUrl);
+                    // 跳转到剪映官网，实际应用中应该传递视频参数
+                    window.open('https://www.capcut.cn/', '_blank');
+                } else {
+                    alert('请先生成视频');
+                }
+            });
+
+            // 上一步按钮
+            const prevStepBtn = document.querySelector('#prev-step-btn');
+            prevStepBtn.addEventListener('click', function() {
+                window.location.href = `P-DYNAMIC_CREATE_STEP4.html?projectId=${projectId}`;
+            });
+
+            // 保存草稿按钮
+            const saveDraftBtn = document.querySelector('#save-draft-btn');
+            saveDraftBtn.addEventListener('click', function() {
+                // 保存当前配置
+                const config = {
+                    backgroundMusic: document.querySelector('#background-music').value,
+                    fontFamily: document.querySelector('#font-family').value,
+                    fontSize: document.querySelector('#font-size').value,
+                    fontColor: document.querySelector('#font-color').value,
+                    backgroundColor: document.querySelector('#background-color').value
+                };
+                
+                console.log('保存草稿配置:', config);
+                alert('草稿已保存');
+                
+                // 跳转到项目管理页
+                window.location.href = `P-PROJECT_MANAGE.html?projectId=${projectId}`;
+            });
+
+            // 下一步按钮（当前步骤为最后一步，已禁用）
+            const nextStepBtn = document.querySelector('#next-step-btn');
+            nextStepBtn.addEventListener('click', function() {
+                // 当前为最后一步，不需要跳转
+                console.log('已完成所有制作步骤');
+            });
+
+            // 导航菜单点击事件
+            document.querySelector('#nav-projects').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PROJECT_MANAGE.html';
+            });
+
+            document.querySelector('#nav-assets').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-ASSET_MANAGE.html';
+            });
+
+            document.querySelector('#nav-users').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-USER_MANAGE.html';
+            });
+
+            document.querySelector('#nav-plans').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-PLAN_MANAGE.html';
+            });
+
+            document.querySelector('#nav-api-keys').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-API_KEY_SETTING.html';
+            });
+
+            // 响应式处理
+            function handleResize() {
+                const width = window.innerWidth;
+                
+                if (width < 1024 && !sidebarCollapsed) {
+                    // 小屏幕自动折叠侧边栏
+                    sidebarToggle.click();
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化检查
+        });
+    </script>
+</body>
+</html>

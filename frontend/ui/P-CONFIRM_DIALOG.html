@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>确认操作 - AI漫剧速成工场</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
+                        tertiary: '#10B981',
+                        success: '#22C55E',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#06B6D4',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#6B7280',
+                        'bg-primary': '#F8FAFC',
+                        'bg-secondary': '#F1F5F9',
+                        'border-light': '#E2E8F0',
+                        'border-medium': '#CBD5E1'
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+        
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-backdrop-enter {
+            animation: backdropEnter 0.3s ease-out;
+        }
+        
+        @keyframes backdropEnter {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-text-primary">
+    <!-- 模态弹窗背景 -->
+    <div id="modal-backdrop" class="fixed inset-0 modal-backdrop modal-backdrop-enter z-50 flex items-center justify-center p-4">
+        <!-- 确认对话框 -->
+        <div id="confirm-dialog" class="bg-white rounded-lg shadow-modal w-full max-w-md modal-enter">
+            <!-- 对话框头部 -->
+            <div id="dialog-header" class="flex items-center justify-between p-6 border-b border-border-light">
+                <div class="flex items-center space-x-3">
+                    <div id="dialog-icon" class="w-10 h-10 bg-danger bg-opacity-10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-danger text-lg"></i>
+                    </div>
+                    <h3 id="dialog-title" class="text-lg font-semibold text-text-primary">确认删除</h3>
+                </div>
+                <button id="close-btn" class="p-1 rounded-lg hover:bg-bg-secondary transition-colors">
+                    <i class="fas fa-times text-text-secondary"></i>
+                </button>
+            </div>
+            
+            <!-- 对话框内容 -->
+            <div id="dialog-content" class="p-6">
+                <p id="dialog-message" class="text-text-secondary leading-relaxed">
+                    确定要删除选中的项目吗？删除后将无法恢复，请谨慎操作。
+                </p>
+                
+                <!-- 详细信息（可选） -->
+                <div id="dialog-details" class="mt-4 p-3 bg-bg-secondary rounded-lg hidden">
+                    <div class="text-sm text-text-secondary">
+                        <div class="font-medium text-text-primary mb-1">将要删除的项目：</div>
+                        <ul id="delete-list" class="space-y-1">
+                            <!-- 动态填充删除项目列表 -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 对话框底部按钮 -->
+            <div id="dialog-footer" class="flex items-center justify-end space-x-3 p-6 border-t border-border-light bg-bg-secondary bg-opacity-50">
+                <button id="cancel-btn" class="px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                    <i class="fas fa-times mr-2"></i>取消
+                </button>
+                <button id="confirm-btn" class="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2">
+                    <i class="fas fa-check mr-2"></i>确定删除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数的辅助函数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+            
+            // 获取URL参数
+            const params = getUrlParams();
+            
+            // 根据参数配置对话框内容
+            configureDialog(params);
+            
+            // 绑定事件监听器
+            bindEventListeners(params);
+            
+            // 键盘事件处理
+            handleKeyboardEvents();
+        });
+        
+        // 配置对话框内容
+        function configureDialog(params) {
+            const dialogTitle = document.querySelector('#dialog-title');
+            const dialogMessage = document.querySelector('#dialog-message');
+            const dialogIcon = document.querySelector('#dialog-icon');
+            const confirmBtn = document.querySelector('#confirm-btn');
+            const dialogDetails = document.querySelector('#dialog-details');
+            const deleteList = document.querySelector('#delete-list');
+            
+            // 默认配置
+            let config = {
+                title: '确认操作',
+                message: '确定要执行此操作吗？',
+                type: 'warning', // warning, danger, info, success
+                confirmText: '确定',
+                cancelText: '取消',
+                items: null
+            };
+            
+            // 根据操作类型配置
+            if (params.action) {
+                switch (params.action) {
+                    case 'delete_project':
+                        config = {
+                            title: '确认删除项目',
+                            message: '确定要删除选中的项目吗？删除后将无法恢复，请谨慎操作。',
+                            type: 'danger',
+                            confirmText: '确定删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'batch_delete_projects':
+                        config = {
+                            title: '批量删除项目',
+                            message: `确定要删除选中的 ${params.count || '多个'} 个项目吗？删除后将无法恢复，请谨慎操作。`,
+                            type: 'danger',
+                            confirmText: '批量删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'delete_asset':
+                        config = {
+                            title: '确认删除资产',
+                            message: '确定要删除选中的资产吗？删除后将无法恢复，请谨慎操作。',
+                            type: 'danger',
+                            confirmText: '确定删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'batch_delete_assets':
+                        config = {
+                            title: '批量删除资产',
+                            message: `确定要删除选中的 ${params.count || '多个'} 个资产吗？删除后将无法恢复，请谨慎操作。`,
+                            type: 'danger',
+                            confirmText: '批量删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'delete_user':
+                        config = {
+                            title: '确认删除用户',
+                            message: '确定要删除选中的用户吗？删除后将无法恢复，请谨慎操作。',
+                            type: 'danger',
+                            confirmText: '确定删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'batch_delete_users':
+                        config = {
+                            title: '批量删除用户',
+                            message: `确定要删除选中的 ${params.count || '多个'} 个用户吗？删除后将无法恢复，请谨慎操作。`,
+                            type: 'danger',
+                            confirmText: '批量删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'delete_storyboard':
+                        config = {
+                            title: '确认删除分镜',
+                            message: '确定要删除这个分镜吗？删除后将无法恢复，请谨慎操作。',
+                            type: 'danger',
+                            confirmText: '确定删除',
+                            cancelText: '取消',
+                            items: params.items ? JSON.parse(decodeURIComponent(params.items)) : null
+                        };
+                        break;
+                    case 'warning':
+                        config = {
+                            title: '警告',
+                            message: params.message || '此操作可能产生不可预期的后果，确定要继续吗？',
+                            type: 'warning',
+                            confirmText: '继续',
+                            cancelText: '取消'
+                        };
+                        break;
+                    case 'info':
+                        config = {
+                            title: '信息确认',
+                            message: params.message || '请确认以下信息',
+                            type: 'info',
+                            confirmText: '确认',
+                            cancelText: '取消'
+                        };
+                        break;
+                }
+            }
+            
+            // 自定义消息
+            if (params.message) {
+                config.message = decodeURIComponent(params.message);
+            }
+            
+            if (params.title) {
+                config.title = decodeURIComponent(params.title);
+            }
+            
+            if (params.confirmText) {
+                config.confirmText = decodeURIComponent(params.confirmText);
+            }
+            
+            if (params.cancelText) {
+                config.cancelText = decodeURIComponent(params.cancelText);
+            }
+            
+            // 设置标题
+            dialogTitle.textContent = config.title;
+            
+            // 设置消息
+            dialogMessage.textContent = config.message;
+            
+            // 设置按钮文本
+            confirmBtn.innerHTML = `<i class="fas fa-check mr-2"></i>${config.confirmText}`;
+            document.querySelector('#cancel-btn').innerHTML = `<i class="fas fa-times mr-2"></i>${config.cancelText}`;
+            
+            // 设置图标和颜色
+            const iconElement = dialogIcon.querySelector('i');
+            switch (config.type) {
+                case 'danger':
+                    dialogIcon.className = 'w-10 h-10 bg-danger bg-opacity-10 rounded-full flex items-center justify-center';
+                    iconElement.className = 'fas fa-exclamation-triangle text-danger text-lg';
+                    confirmBtn.className = 'px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2';
+                    break;
+                case 'warning':
+                    dialogIcon.className = 'w-10 h-10 bg-warning bg-opacity-10 rounded-full flex items-center justify-center';
+                    iconElement.className = 'fas fa-exclamation-circle text-warning text-lg';
+                    confirmBtn.className = 'px-4 py-2 bg-warning text-white rounded-lg hover:bg-yellow-600 transition-colors focus:outline-none focus:ring-2 focus:ring-warning focus:ring-offset-2';
+                    break;
+                case 'info':
+                    dialogIcon.className = 'w-10 h-10 bg-info bg-opacity-10 rounded-full flex items-center justify-center';
+                    iconElement.className = 'fas fa-info-circle text-info text-lg';
+                    confirmBtn.className = 'px-4 py-2 bg-info text-white rounded-lg hover:bg-cyan-600 transition-colors focus:outline-none focus:ring-2 focus:ring-info focus:ring-offset-2';
+                    break;
+                case 'success':
+                    dialogIcon.className = 'w-10 h-10 bg-success bg-opacity-10 rounded-full flex items-center justify-center';
+                    iconElement.className = 'fas fa-check-circle text-success text-lg';
+                    confirmBtn.className = 'px-4 py-2 bg-success text-white rounded-lg hover:bg-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2';
+                    break;
+            }
+            
+            // 显示详细信息
+            if (config.items && config.items.length > 0) {
+                dialogDetails.classList.remove('hidden');
+                deleteList.innerHTML = '';
+                
+                config.items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center space-x-2';
+                    li.innerHTML = `
+                        <i class="fas fa-circle text-xs text-text-secondary"></i>
+                        <span>${item.name || item.title || item.id}</span>
+                    `;
+                    deleteList.appendChild(li);
+                });
+            }
+        }
+        
+        // 绑定事件监听器
+        function bindEventListeners(params) {
+            const confirmBtn = document.querySelector('#confirm-btn');
+            const cancelBtn = document.querySelector('#cancel-btn');
+            const closeBtn = document.querySelector('#close-btn');
+            const modalBackdrop = document.querySelector('#modal-backdrop');
+            
+            // 确定按钮点击事件
+            confirmBtn.addEventListener('click', function() {
+                handleConfirm(params);
+            });
+            
+            // 取消按钮点击事件
+            cancelBtn.addEventListener('click', function() {
+                handleCancel();
+            });
+            
+            // 关闭按钮点击事件
+            closeBtn.addEventListener('click', function() {
+                handleCancel();
+            });
+            
+            // 点击背景关闭
+            modalBackdrop.addEventListener('click', function(e) {
+                if (e.target === modalBackdrop) {
+                    handleCancel();
+                }
+            });
+        }
+        
+        // 处理确定操作
+        function handleConfirm(params) {
+            // 显示加载状态
+            const confirmBtn = document.querySelector('#confirm-btn');
+            const originalText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>处理中...';
+            confirmBtn.disabled = true;
+            
+            // 模拟处理过程
+            setTimeout(() => {
+                // 执行相应的操作
+                console.log('确认操作:', params.action);
+                
+                // 根据来源页面返回
+                const returnPage = params.returnPage || 'P-PROJECT_MANAGE.html';
+                const returnParams = params.returnParams ? `?${params.returnParams}` : '';
+                
+                // 显示成功提示（可选）
+                showSuccessMessage();
+                
+                // 延迟跳转，让用户看到成功提示
+                setTimeout(() => {
+                    window.location.href = `${returnPage}${returnParams}`;
+                }, 1000);
+            }, 500);
+        }
+        
+        // 处理取消操作
+        function handleCancel() {
+            // 根据来源页面返回
+            const params = getUrlParams();
+            const returnPage = params.returnPage || 'P-PROJECT_MANAGE.html';
+            const returnParams = params.returnParams ? `?${params.returnParams}` : '';
+            
+            window.location.href = `${returnPage}${returnParams}`;
+        }
+        
+        // 键盘事件处理
+        function handleKeyboardEvents() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    document.querySelector('#confirm-btn').click();
+                } else if (e.key === 'Escape') {
+                    handleCancel();
+                }
+            });
+        }
+        
+        // 显示成功消息
+        function showSuccessMessage() {
+            const dialog = document.querySelector('#confirm-dialog');
+            const successMessage = document.createElement('div');
+            successMessage.className = 'fixed top-4 right-4 bg-success text-white px-6 py-3 rounded-lg shadow-lg z-60 transform translate-x-full transition-transform duration-300';
+            successMessage.innerHTML = '<i class="fas fa-check mr-2"></i>操作成功';
+            
+            document.body.appendChild(successMessage);
+            
+            // 显示消息
+            setTimeout(() => {
+                successMessage.classList.remove('translate-x-full');
+            }, 100);
+            
+            // 自动隐藏
+            setTimeout(() => {
+                successMessage.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(successMessage);
+                }, 300);
+            }, 2000);
+        }
+        
+        // 解析URL参数的辅助函数
+        function getUrlParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const urlParams = new URLSearchParams(queryString);
+            
+            for(const [key, value] of urlParams.entries()) {
+                params[key] = value;
+            }
+            return params;
+        }
+    </script>
+</body>
+</html>
