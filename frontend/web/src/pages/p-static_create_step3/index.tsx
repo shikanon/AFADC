@@ -10,6 +10,7 @@ interface StoryboardItem {
   number: number;
   characters: string[];
   script: string;
+  subtitle: string; // 新增字幕字段
   imageUrl: string;
   prompt: string;
 }
@@ -26,6 +27,7 @@ const StaticCreateStep3: React.FC = () => {
       number: 1,
       characters: ['莉莉亚'],
       script: '阳光明媚的早晨，莉莉亚站在魔法学院的大门前，眼中闪烁着激动的光芒。学院的建筑宏伟壮观，充满了神秘的气息。',
+      subtitle: '', // 新增字幕字段，初始为空
       imageUrl: 'https://s.coze.cn/image/hXT9hwKARBE/',
       prompt: '阳光明媚的早晨，魔法学院大门前，一个年轻的女孩站在那里，眼中充满期待，建筑宏伟壮观，神秘的魔法氛围'
     },
@@ -33,7 +35,8 @@ const StaticCreateStep3: React.FC = () => {
       id: 'sb-002',
       number: 2,
       characters: ['莉莉亚', '艾米'],
-      script: '莉莉亚走进学院，遇到了同样是新生的艾米。两个女孩很快就聊了起来，发现彼此有很多共同的兴趣爱好。',
+      script: '莉莉亚走进学院，遇到了同样新的艾米。两个女孩很快就聊了起来，发现彼此有很多共同的兴趣爱好。',
+      subtitle: '', // 新增字幕字段，初始为空
       imageUrl: 'https://s.coze.cn/image/TwWQkCHpzu0/',
       prompt: '学院走廊里，两个年轻女孩在交谈，表情友好，背景是魔法学院的内部装饰'
     },
@@ -42,6 +45,7 @@ const StaticCreateStep3: React.FC = () => {
       number: 3,
       characters: ['莉莉亚', '艾米'],
       script: '艾米热情地带着莉莉亚参观学院的各个设施，包括图书馆、魔法练习室和餐厅。莉莉亚对这里的一切都感到新奇。',
+      subtitle: '', // 新增字幕字段，初始为空
       imageUrl: 'https://s.coze.cn/image/5xjn0yDZY4Q/',
       prompt: '两个女孩在魔法学院的走廊里行走，背景是图书馆的大门，充满知识的氛围'
     },
@@ -50,8 +54,9 @@ const StaticCreateStep3: React.FC = () => {
       number: 4,
       characters: ['莉莉亚', '艾米'],
       script: '参观结束后，莉莉亚和艾米坐在学院的花园里，畅谈着未来的梦想和期望。夕阳的余晖洒在她们身上，为这美好的第一天画上了完美的句号。',
+      subtitle: '', // 新增字幕字段，初始为空
       imageUrl: 'https://s.coze.cn/image/dDJ1MTK9Gr0/',
-      prompt: '学院花园里，两个女孩坐在长椅上交谈，夕阳西下，温暖的光线洒在她们身上，充满希望的氛围'
+      prompt: '学院花园里，两个女孩坐在长椅上交谈，夕阳西下，温暖的光线洒在她们身上，充满希望氛围'
     }
   ]);
 
@@ -91,6 +96,12 @@ const StaticCreateStep3: React.FC = () => {
     alert('正在批量生成分镜画面，请稍候...');
   };
 
+  // 新增：处理单个图片生成
+  const handleGenerateImage = (storyboardId: string) => {
+    console.log('生成单个分镜图片，分镜ID:', storyboardId);
+    alert('正在生成分镜图片，请稍候...');
+  };
+
   const handleEditStoryboard = (storyboardId: string) => {
     console.log('打开分镜编辑弹窗，分镜ID:', storyboardId);
     alert('打开分镜编辑弹窗');
@@ -120,6 +131,15 @@ const StaticCreateStep3: React.FC = () => {
     setStoryboardItems(prevItems =>
       prevItems.map(item =>
         item.id === storyboardId ? { ...item, script: newScript } : item
+      )
+    );
+  };
+
+  // 新增：处理分镜字幕变化
+  const handleStoryboardSubtitleChange = (storyboardId: string, newSubtitle: string) => {
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === storyboardId ? { ...item, subtitle: newSubtitle } : item
       )
     );
   };
@@ -348,8 +368,39 @@ const StaticCreateStep3: React.FC = () => {
                         />
                       </div>
                       
-                      {/* 画面预览 */}
-                      <div className="flex items-center space-x-4">
+                      {/* 新增：分镜字幕 */}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-text-primary mb-2">分镜字幕</label>
+                        <textarea 
+                          value={item.subtitle}
+                          onChange={(e) => handleStoryboardSubtitleChange(item.id, e.target.value)}
+                          className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" 
+                          rows={2}
+                          placeholder="请输入分镜字幕内容..."
+                        />
+                      </div>
+                      
+                      {/* 布局调整：生成提示词在左，画面预览在右 */}
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
+                          <div className="flex items-start space-x-2">
+                            <textarea 
+                              value={item.prompt}
+                              onChange={(e) => handleStoryboardPromptChange(item.id, e.target.value)}
+                              className="flex-1 px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" 
+                              rows={3}
+                            />
+                            {/* 新增：图片生成按钮 */}
+                            <button 
+                              onClick={() => handleGenerateImage(item.id)}
+                              className="px-3 py-2 bg-tertiary text-white rounded-lg hover:bg-green-600 transition-colors whitespace-nowrap"
+                              title="生成图片"
+                            >
+                              <i className="fas fa-image mr-1"></i>图片生成
+                            </button>
+                          </div>
+                        </div>
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-text-primary mb-2">画面预览</label>
                           <div className="relative">
@@ -367,15 +418,6 @@ const StaticCreateStep3: React.FC = () => {
                               </button>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
-                          <textarea 
-                            value={item.prompt}
-                            onChange={(e) => handleStoryboardPromptChange(item.id, e.target.value)}
-                            className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" 
-                            rows={3}
-                          />
                         </div>
                       </div>
                     </div>
