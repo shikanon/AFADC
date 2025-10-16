@@ -313,85 +313,83 @@ const StaticCreateStep3: React.FC = () => {
                       <i className="fas fa-grip-vertical text-text-secondary"></i>
                     </div>
                     
-                    {/* 分镜信息 */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-text-primary">分镜 #{item.number}</span>
-                          <span className="text-xs text-text-secondary">ID: {item.id.toUpperCase()}</span>
+                    {/* 分镜信息 - 左右分栏布局 */}
+                    <div className={`flex-1 ${styles.storyboardLayout}`}>
+                      {/* 左列：关联角色、分镜脚本、分镜字幕 */}
+                      <div className={styles.leftColumn}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-text-primary">分镜 #{item.number}</span>
+                            <span className="text-xs text-text-secondary">ID: {item.id.toUpperCase()}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button 
+                              onClick={() => handleAddCharacter(item.id)}
+                              className="text-primary hover:text-blue-600 text-sm" 
+                              title="添加角色"
+                            >
+                              <i className="fas fa-user-plus"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleEditStoryboard(item.id)}
+                              className="text-text-secondary hover:text-text-primary text-sm" 
+                              title="编辑"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteStoryboard(item.id)}
+                              className="text-danger hover:text-red-600 text-sm" 
+                              title="删除"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <button 
-                            onClick={() => handleAddCharacter(item.id)}
-                            className="text-primary hover:text-blue-600 text-sm" 
-                            title="添加角色"
-                          >
-                            <i className="fas fa-user-plus"></i>
-                          </button>
-                          <button 
-                            onClick={() => handleEditStoryboard(item.id)}
-                            className="text-text-secondary hover:text-text-primary text-sm" 
-                            title="编辑"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteStoryboard(item.id)}
-                            className="text-danger hover:text-red-600 text-sm" 
-                            title="删除"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* 关联角色 */}
-                      <div className="mb-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-sm font-medium text-text-primary">关联角色:</span>
+                        
+                        {/* 关联角色 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>关联角色</label>
                           <div className="flex flex-wrap gap-1">
                             {item.characters.map((character, index) => (
                               <span key={index} className={styles.characterTag}>{character}</span>
                             ))}
                           </div>
                         </div>
+                        
+                        {/* 分镜脚本 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>分镜脚本</label>
+                          <textarea 
+                            value={item.script}
+                            onChange={(e) => handleStoryboardScriptChange(item.id, e.target.value)}
+                            className={`${styles.fixedHeightTextarea} ${styles.scriptTextarea}`}
+                          />
+                        </div>
+                        
+                        {/* 分镜字幕 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>分镜字幕</label>
+                          <textarea 
+                            value={item.subtitle}
+                            onChange={(e) => handleStoryboardSubtitleChange(item.id, e.target.value)}
+                            className={`${styles.fixedHeightTextarea} ${styles.subtitleTextarea}`}
+                            placeholder="请输入分镜字幕内容..."
+                          />
+                        </div>
                       </div>
                       
-                      {/* 分镜脚本 */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-text-primary mb-2">分镜脚本</label>
-                        <textarea 
-                          value={item.script}
-                          onChange={(e) => handleStoryboardScriptChange(item.id, e.target.value)}
-                          className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" 
-                          rows={3}
-                        />
-                      </div>
-                      
-                      {/* 新增：分镜字幕 */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-text-primary mb-2">分镜字幕</label>
-                        <textarea 
-                          value={item.subtitle}
-                          onChange={(e) => handleStoryboardSubtitleChange(item.id, e.target.value)}
-                          className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" 
-                          rows={2}
-                          placeholder="请输入分镜字幕内容..."
-                        />
-                      </div>
-                      
-                      {/* 布局调整：生成提示词在左，画面预览在右 */}
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-text-primary mb-2">生成提示词</label>
+                      {/* 右列：生成提示词、画面预览 */}
+                      <div className={styles.rightColumn}>
+                        {/* 生成提示词 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>生成提示词</label>
                           <div className="flex items-start space-x-2">
                             <textarea 
                               value={item.prompt}
                               onChange={(e) => handleStoryboardPromptChange(item.id, e.target.value)}
-                              className="flex-1 px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm" 
-                              rows={3}
+                              className={`${styles.fixedHeightTextarea} ${styles.scriptTextarea}`}
                             />
-                            {/* 新增：图片生成按钮 */}
                             <button 
                               onClick={() => handleGenerateImage(item.id)}
                               className="px-3 py-2 bg-tertiary text-white rounded-lg hover:bg-green-600 transition-colors whitespace-nowrap"
@@ -401,8 +399,10 @@ const StaticCreateStep3: React.FC = () => {
                             </button>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-text-primary mb-2">画面预览</label>
+                        
+                        {/* 画面预览 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>画面预览</label>
                           <div className="relative">
                             <img 
                               src={item.imageUrl}
