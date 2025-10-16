@@ -105,3 +105,85 @@
   height: 80px;
 }
 
+/* 画面预览区域样式 */
+.previewContainer {
+  width: 100%;
+}
+
+.previewImagesContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.previewImageWrapper {
+  flex: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid #E5E7EB; /* 未选中状态：浅灰色细边框 */
+}
+
+.previewImageWrapper.selected {
+  border-color: #3B82F6; /* 选中状态：蓝色高亮 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.previewImage {
+  width: 100%;
+  height: 0;
+  padding-bottom: 75%; /* 4:3 比例 */
+  object-fit: cover;
+  display: block;
+}
+
+/* 按钮容器 - 图片生成和存入资产库 */
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  gap: 10px; /* 两个按钮之间的间距 */
+}
+
+/* 图片生成按钮 */
+.generateImageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #10B981; /* 绿色背景，与原按钮保持一致 */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.generateImageButton:hover {
+  background-color: #059669; /* 悬停时深绿色 */
+}
+
+/* 存入资产库按钮 */
+.saveToAssetButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.saveToAssetButton:hover {
+  background-color: #2563EB;
+}
+

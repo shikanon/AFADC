@@ -33,6 +33,9 @@ const StaticCreateStep3: React.FC = () => {
   const [isCharacterDialogOpen, setIsCharacterDialogOpen] = useState(false);
   const [currentStoryboardId, setCurrentStoryboardId] = useState<string | null>(null);
   
+  // 预览图选中状态 - 为每个分镜单独管理
+  const [selectedPreviewIndices, setSelectedPreviewIndices] = useState<{[key: string]: number}>({});
+  
   // 可用角色数据
   const [availableCharacters] = useState<Character[]>([
     { id: 'char-001', name: '莉莉亚', avatar: 'https://s.coze.cn/image/hXT9hwKARBE/' },
@@ -89,6 +92,23 @@ const StaticCreateStep3: React.FC = () => {
     document.title = 'AI静态漫制作 - 创建章节，生成分镜画面 - AI漫剧速成工场';
     return () => { document.title = originalTitle; };
   }, []);
+
+  // 初始化每个分镜的选中状态
+  useEffect(() => {
+    const initialStates: {[key: string]: number} = {};
+    storyboardItems.forEach(item => {
+      if (!(item.id in selectedPreviewIndices)) {
+        initialStates[item.id] = 0; // 默认选中第一张预览图
+      }
+    });
+    
+    if (Object.keys(initialStates).length > 0) {
+      setSelectedPreviewIndices(prev => ({
+        ...prev,
+        ...initialStates
+      }));
+    }
+  }, [storyboardItems]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -161,6 +181,20 @@ const StaticCreateStep3: React.FC = () => {
   const handleCloseCharacterDialog = () => {
     setIsCharacterDialogOpen(false);
     setCurrentStoryboardId(null);
+  };
+
+  // 处理预览图选中
+  const handlePreviewSelect = (storyboardId: string, index: number) => {
+    setSelectedPreviewIndices(prev => ({
+      ...prev,
+      [storyboardId]: index
+    }));
+  };
+
+  // 处理存入资产库
+  const handleSaveToAssetLibrary = () => {
+    // 显示成功提示
+    alert('成功存入资产库');
   };
 
   const handleDeleteStoryboard = (storyboardId: string) => {
@@ -435,37 +469,47 @@ const StaticCreateStep3: React.FC = () => {
                         {/* 生成提示词 */}
                         <div>
                           <label className={styles.unifiedLabel}>生成提示词</label>
-                          <div className="flex items-start space-x-2">
-                            <textarea 
-                              value={item.prompt}
-                              onChange={(e) => handleStoryboardPromptChange(item.id, e.target.value)}
-                              className={`${styles.fixedHeightTextarea} ${styles.scriptTextarea}`}
-                            />
-                            <button 
-                              onClick={() => handleGenerateImage(item.id)}
-                              className="px-3 py-2 bg-tertiary text-white rounded-lg hover:bg-green-600 transition-colors whitespace-nowrap"
-                              title="生成图片"
-                            >
-                              <i className="fas fa-image mr-1"></i>图片生成
-                            </button>
-                          </div>
+                          <textarea 
+                            value={item.prompt}
+                            onChange={(e) => handleStoryboardPromptChange(item.id, e.target.value)}
+                            className={`${styles.fixedHeightTextarea} ${styles.scriptTextarea}`}
+                          />
                         </div>
                         
                         {/* 画面预览 */}
                         <div>
                           <label className={styles.unifiedLabel}>画面预览</label>
-                          <div className="relative">
-                            <img 
-                              src={item.imageUrl}
-                              alt="分镜画面预览" 
-                              className="w-32 h-20 rounded-lg object-cover border border-border-light"
-                            />
-                            <div className="absolute top-1 right-1">
+                          <div className={styles.previewContainer}>
+                            {/* 预览图横向排列 */}
+                            <div className={styles.previewImagesContainer}>
+                              {storyboardItems.slice(0, 3).map((previewItem, index) => (
+                                <div 
+                                  key={previewItem.id}
+                                  className={`${styles.previewImageWrapper} ${selectedPreviewIndices[item.id] === index ? styles.selected : ''}`}
+                                  onClick={() => handlePreviewSelect(item.id, index)}
+                                >
+                                  <img 
+                                    src={previewItem.imageUrl}
+                                    alt={`预览图 ${index + 1}`} 
+                                    className={styles.previewImage}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            {/* 按钮区域 - 图片生成和存入资产库 */}
+                            <div className={styles.buttonContainer}>
                               <button 
-                                onClick={() => handleReplaceImage(item.id)}
-                                className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
+                                onClick={() => handleGenerateImage(item.id)}
+                                className={styles.generateImageButton}
+                                title="生成图片"
                               >
-                                <i className="fas fa-exchange-alt text-xs text-text-secondary"></i>
+                                <i className="fas fa-image mr-2"></i>图片生成
+                              </button>
+                              <button 
+                                onClick={handleSaveToAssetLibrary}
+                                className={styles.saveToAssetButton}
+                              >
+                                <i className="fas fa-save mr-2"></i>存入资产库
                               </button>
                             </div>
                           </div>
