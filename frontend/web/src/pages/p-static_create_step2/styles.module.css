@@ -53,3 +53,179 @@
   width: 100%;
 }
 
+/* 主图容器样式 */
+.mainImageContainer {
+  width: 160px; /* 调整为2:3比例，高度240px */
+  height: 240px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden; /* 裁剪图片边缘 */
+}
+
+/* 主图样式 */
+.mainImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 保持比例且填充容器 */
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+}
+
+.mainImage:hover {
+  transform: scale(1.02); /* hover时轻微放大增强生动感 */
+}
+
+/* 候选图容器样式 */
+.candidateImagesContainer {
+  flex: 1;
+  height: 240px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 候选图滚动容器 */
+.candidateImagesScroll {
+  display: flex;
+  gap: 12px; /* 调整间距为12px */
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px; /* 调整底部内边距 */
+  /* 隐藏滚动条，默认状态 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.candidateImagesScroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* hover时显示滚动条 */
+.candidateImagesContainer:hover .candidateImagesScroll {
+  scrollbar-width: thin; /* Firefox */
+  -ms-overflow-style: auto; /* IE and Edge */
+}
+
+.candidateImagesContainer:hover .candidateImagesScroll::-webkit-scrollbar {
+  display: block; /* Chrome, Safari, Opera */
+  height: 6px;
+}
+
+.candidateImagesContainer:hover .candidateImagesScroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.candidateImagesContainer:hover .candidateImagesScroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.candidateImagesContainer:hover .candidateImagesScroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 候选图样式 */
+.candidateImage {
+  width: 160px; /* 调整为与主图相同的2:3比例 */
+  height: 240px; /* 保持2:3比例 */
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid transparent; /* 添加透明边框，为hover效果做准备 */
+}
+
+.candidateImage:hover {
+  border: 2px solid #4096ff; /* hover时边框变为品牌主色边框 */
+  box-shadow: 0 4px 12px rgba(64, 150, 255, 0.15);
+}
+
+/* 主按钮样式 - 重新生成按钮 */
+.primaryButton {
+  padding: 8px 12px;
+  background-color: #4096ff; /* 品牌蓝色填充 */
+  color: white;
+  border: none;
+  border-radius: 4px; /* 4px圆角 */
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primaryButton:hover:not(.disabled) {
+  background-color: #2e85f3; /* hover时颜色加深 */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(64, 150, 255, 0.3);
+}
+
+.primaryButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 次按钮样式 - 选择资产按钮 */
+.secondaryButton {
+  padding: 8px 12px;
+  background-color: white;
+  color: #4096ff; /* 文字颜色为品牌蓝色 */
+  border: 1px solid #4096ff; /* 品牌蓝色描边 */
+  border-radius: 4px; /* 4px圆角 */
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secondaryButton:hover {
+  background-color: rgba(64, 150, 255, 0.1); /* hover时背景变为浅蓝 */
+  border-color: #4096ff; /* 边框颜色保持不变 */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(64, 150, 255, 0.2);
+}
+
+/* 角色形象卡片整体样式 */
+.characterImageCard {
+  background-color: #f9fafc; /* 浅蓝背景 */
+  border-radius: 8px; /* 8px圆角 */
+  border: 1px solid #e5e7eb; /* 1px淡灰边框 */
+  padding: 16px;
+  margin-bottom: 20px; /* 与周围模块间距20px */
+}
+
+/* 组合按钮区域样式 */
+.combinedActionButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 按钮间距10px */
+  margin-top: 16px; /* 与上方形象区垂直间距16px */
+}
+
+/* 配音配置按钮样式 */
+.voiceConfigButton {
+  padding: 8px 12px;
+  background-color: white;
+  color: #4096ff; /* 文字颜色为品牌蓝色 */
+  border: 1px solid #4096ff; /* 品牌蓝色描边 */
+  border-radius: 4px; /* 4px圆角 */
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.voiceConfigButton:hover {
+  background-color: rgba(64, 150, 255, 0.1); /* hover时背景变为浅蓝 */
+  border-color: #4096ff; /* 边框颜色保持不变 */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(64, 150, 255, 0.2);
+}
+

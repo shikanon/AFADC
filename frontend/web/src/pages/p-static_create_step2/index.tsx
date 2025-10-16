@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
+import { VoiceConfigDialog } from '../../components/Common'; // 导入配音配置弹窗组件
 import styles from './styles.module.css';
 
 interface CharacterData {
@@ -13,6 +14,7 @@ interface CharacterData {
   voice: string;
   speed: number;
   previewText: string;
+  characterPrompt: string; // 新增角色IP提示词字段
   isGenerating: boolean;
 }
 
@@ -32,6 +34,7 @@ const StaticCreateStep2: React.FC = () => {
       voice: 'voice1',
       speed: 1.0,
       previewText: '你好，我是艾莉丝，很高兴认识你！',
+      characterPrompt: '活泼开朗的魔法学院少女，声音甜美清脆，充满活力和好奇心', // 新增角色IP提示词
       isGenerating: false
     },
     {
@@ -46,6 +49,7 @@ const StaticCreateStep2: React.FC = () => {
       voice: 'voice5',
       speed: 0.9,
       previewText: '欢迎来到魔法学院，年轻的学徒。',
+      characterPrompt: '经验丰富的魔法师，声音沉稳而神秘，充满智慧和权威感', // 新增角色IP提示词
       isGenerating: false
     }
   ]);
@@ -54,6 +58,8 @@ const StaticCreateStep2: React.FC = () => {
   const [narratorPreviewText, setNarratorPreviewText] = useState('在遥远的魔法王国，有一所古老的魔法学院...');
   const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
   const [characterInfo, setCharacterInfo] = useState(''); // 角色信息配置状态
+  const [voiceConfigDialogVisible, setVoiceConfigDialogVisible] = useState(false); // 配音配置弹窗可见性
+  const [currentVoiceConfigCharacter, setCurrentVoiceConfigCharacter] = useState<CharacterData | null>(null); // 当前配音配置角色
   const audioPlayerRef = useRef<HTMLAudioElement>(new Audio());
 
   useEffect(() => {
@@ -96,6 +102,47 @@ const StaticCreateStep2: React.FC = () => {
     setCharacters(prev => prev.map(char => 
       char.id === characterId ? { ...char, previewText: newText } : char
     ));
+  };
+
+  const handleCharacterPromptChange = (characterId: string, newPrompt: string) => {
+    setCharacters(prev => prev.map(char => 
+      char.id === characterId ? { ...char, characterPrompt: newPrompt } : char
+    ));
+  };
+
+  // 打开配音配置弹窗
+  const handleOpenVoiceConfigDialog = (character: CharacterData) => {
+    setCurrentVoiceConfigCharacter(character);
+    setVoiceConfigDialogVisible(true);
+  };
+
+  // 关闭配音配置弹窗
+  const handleCloseVoiceConfigDialog = () => {
+    setVoiceConfigDialogVisible(false);
+    setCurrentVoiceConfigCharacter(null);
+  };
+
+  // 确认配音配置
+  const handleConfirmVoiceConfig = (config: {
+    voice: string;
+    speed: number;
+    previewText: string;
+    characterPrompt?: string;
+  }) => {
+    if (currentVoiceConfigCharacter) {
+      setCharacters(prev => prev.map(char => 
+        char.id === currentVoiceConfigCharacter.id 
+          ? { 
+              ...char, 
+              voice: config.voice,
+              speed: config.speed,
+              previewText: config.previewText,
+              characterPrompt: config.characterPrompt || ''
+            } 
+          : char
+      ));
+    }
+    handleCloseVoiceConfigDialog();
   };
 
   const handlePreviewVoice = (characterId: string) => {
@@ -154,6 +201,7 @@ const StaticCreateStep2: React.FC = () => {
       voice: 'voice1',
       speed: 1.0,
       previewText: '这是新生成的角色',
+      characterPrompt: '请输入角色IP相关的描述词', // 新增角色IP提示词
       isGenerating: false
     };
     setCharacters(prev => [...prev, newCharacter]);
@@ -253,122 +301,88 @@ const StaticCreateStep2: React.FC = () => {
               </div>
               {characters.map((character) => (
                 <div key={character.id} className={`${styles.characterCard} bg-white rounded-lg border border-border-light p-6`}>
-                  <div className="flex items-start space-x-6">
-                    {/* 角色形象区域 */}
-                    <div className="flex-1 max-w-md">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-medium text-text-primary">{character.role} - {character.name}</h4>
-                        <button 
-                          onClick={() => handleDeleteCharacter(character.id)}
-                          className="text-danger hover:text-red-600 text-sm"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </div>
-                      
-                      {/* 角色形象预览 */}
-                      <div className="bg-bg-secondary rounded-lg p-4 mb-4">
-                        <div className="grid grid-cols-3 gap-3">
-                          {character.images.map((image, index) => (
-                            <img 
-                              key={index}
-                              src={image} 
-                              alt={`角色${index === 0 ? '正面' : index === 1 ? '侧面' : '背面'}形象`} 
-                              className="w-full h-24 object-cover rounded-lg"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* 角色操作按钮 */}
-                      <div className="flex space-x-3">
+                  <div className="flex items-start justify-between mb-4">
+                    <h4 className="text-lg font-medium text-text-primary">{character.role} - {character.name}</h4>
+                    <button 
+                      onClick={() => handleDeleteCharacter(character.id)}
+                      className="text-danger hover:text-red-600 text-sm"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                  
+                  {/* 主要内容区域 */}
+                  <div className="flex gap-6">
+                    {/* 左侧：角色IP提示词 */}
+                    <div className="w-2/5">
+                      <label className="block text-sm font-medium text-text-secondary mb-2">角色 IP 提示词</label>
+                      <textarea 
+                        rows={8}
+                        value={character.characterPrompt}
+                        onChange={(e) => handleCharacterPromptChange(character.id, e.target.value)}
+                        className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                        placeholder="输入角色IP相关的描述词（助力角色形象更贴合设定）"
+                      />
+                        {/* 操作按钮区域：重新生成 + 选择资产按钮 + 配音配置按钮 */}
+                      <div className={styles.combinedActionButtons}>
                         <button 
                           onClick={() => handleGenerateCharacter(character.id)}
                           disabled={character.isGenerating}
-                          className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm disabled:opacity-50"
+                          className={`${styles.primaryButton} ${character.isGenerating ? 'disabled' : ''}`}
                         >
                           <i className={`fas ${character.isGenerating ? 'fa-spinner fa-spin' : 'fa-magic'} mr-2`}></i>
-                          {character.isGenerating ? '生成中...' : '重新生成'}
+                          {character.isGenerating ? '生成中...' : '图片生成'}
                         </button>
+                        <button className={`${styles.primaryButton}`}>
+                          <i className="fas fa-code mr-2"></i>
+                          提示词优化</button>
                         <button 
                           onClick={() => handleSelectCharacter(character.id)}
-                          className="flex-1 px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors text-sm"
+                          className={styles.secondaryButton}
                         >
                           <i className="fas fa-images mr-2"></i>选择资产
                         </button>
+                        <button 
+                          onClick={() => handleOpenVoiceConfigDialog(character)}
+                          className={styles.voiceConfigButton}
+                        >
+                          <i className="fas fa-volume-up mr-2"></i>
+                          配音
+                        </button>
                       </div>
                     </div>
-                    
-                    {/* 配音配置区域 */}
+
+                    {/* 右侧：角色形象区域 */}
                     <div className="flex-1">
-                      <h5 className="font-medium text-text-primary mb-4">配音配置</h5>
-                      
-                      {/* 音色选择 */}
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-text-secondary mb-2">音色选择</label>
-                        <div className="flex space-x-2">
-                          <select 
-                            value={character.voice}
-                            onChange={(e) => handleVoiceChange(character.id, e.target.value)}
-                            className="flex-1 px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          >
-                            {character.id === '1' ? (
-                              <>
-                                <option value="voice1">甜美少女音</option>
-                                <option value="voice2">温柔女声</option>
-                                <option value="voice3">活泼少女音</option>
-                                <option value="voice4">成熟女声</option>
-                                <option value="custom">自定义声音</option>
-                              </>
-                            ) : (
-                              <>
-                                <option value="voice5">沉稳男声</option>
-                                <option value="voice6">温和男声</option>
-                                <option value="voice7">威严男声</option>
-                                <option value="voice8">苍老男声</option>
-                                <option value="custom">自定义声音</option>
-                              </>
-                            )}
-                          </select>
-                          <button 
-                            onClick={() => handlePreviewVoice(character.id)}
-                            className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors"
-                          >
-                            <i className={`fas ${playingPreviewId === character.id ? 'fa-pause' : 'fa-play'}`}></i>
-                          </button>
+                      {/* 角色形象预览 - 主图突出 + 候选图辅助布局 */}
+                      <div className={styles.characterImageCard}>
+                        <div className="flex gap-4">
+                          {/* 主选图 */}
+                          <div className={styles.mainImageContainer}>
+                            <img 
+                              src={character.images[0]} 
+                              alt={`角色${character.name}主形象`} 
+                              className={styles.mainImage}
+                            />
+                          </div>
+                          
+                          {/* 候选图滚动容器 */}
+                          <div className={styles.candidateImagesContainer}>
+                            <div className={styles.candidateImagesScroll}>
+                              {character.images.slice(1).map((image, index) => (
+                                <img 
+                                  key={index}
+                                  src={image} 
+                                  alt={`角色${character.name}候选形象${index + 1}`} 
+                                  className={styles.candidateImage}
+                                />
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
-                      {/* 音频速率 */}
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-text-secondary mb-2">音频速率</label>
-                        <div className={styles.audioControls}>
-                          <span className="text-sm text-text-secondary">0.5x</span>
-                          <input 
-                            type="range" 
-                            min="0.5" 
-                            max="2.0" 
-                            step="0.1" 
-                            value={character.speed}
-                            onChange={(e) => handleSpeedChange(character.id, parseFloat(e.target.value))}
-                            className={styles.rangeSlider}
-                          />
-                          <span className="text-sm text-text-secondary">2.0x</span>
-                          <span className="text-sm font-medium text-text-primary">{character.speed}x</span>
-                        </div>
-                      </div>
-                      
-                      {/* 试听文本 */}
-                      <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-2">试听文本</label>
-                        <textarea 
-                          rows={2}
-                          value={character.previewText}
-                          onChange={(e) => handlePreviewTextChange(character.id, e.target.value)}
-                          className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                          placeholder="请输入试听文本..."
-                        />
-                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -465,6 +479,14 @@ const StaticCreateStep2: React.FC = () => {
 
       {/* 音频播放器 */}
       <audio ref={audioPlayerRef} className="hidden"></audio>
+      
+      {/* 配音配置弹窗 */}
+      <VoiceConfigDialog
+        visible={voiceConfigDialogVisible}
+        character={currentVoiceConfigCharacter}
+        onClose={handleCloseVoiceConfigDialog}
+        onConfirm={handleConfirmVoiceConfig}
+      />
     </div>
   );
 };
