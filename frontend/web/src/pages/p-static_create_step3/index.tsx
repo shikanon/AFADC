@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
+import CharacterSelectDialog from './CharacterSelectDialog';
 import styles from './styles.module.css';
 
 interface StoryboardItem {
@@ -15,12 +16,33 @@ interface StoryboardItem {
   prompt: string;
 }
 
+interface Character {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
 const StaticCreateStep3: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [chapterTitle, setChapterTitle] = useState('第一章：魔法学院的第一天');
   const [chapterContent, setChapterContent] = useState('在一个阳光明媚的早晨，莉莉亚怀着激动的心情来到了魔法学院。这是她梦寐以求的地方，传说中这里培养了无数优秀的魔法师。学院的建筑宏伟壮观，充满了神秘的气息。莉莉亚遇到了她的第一个朋友艾米，两人很快就成为了好朋友。她们一起参观了学院的各个角落，对未来的学习生活充满了期待。');
+  
+  // 角色选择弹窗状态
+  const [isCharacterDialogOpen, setIsCharacterDialogOpen] = useState(false);
+  const [currentStoryboardId, setCurrentStoryboardId] = useState<string | null>(null);
+  
+  // 可用角色数据
+  const [availableCharacters] = useState<Character[]>([
+    { id: 'char-001', name: '莉莉亚', avatar: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'char-002', name: '艾米', avatar: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+    { id: 'char-003', name: '老师', avatar: 'https://s.coze.cn/image/5xjn0yDZY4Q/' },
+    { id: 'char-004', name: '校长', avatar: 'https://s.coze.cn/image/dDJ1MTK9Gr0/' },
+    { id: 'char-005', name: '同学甲', avatar: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'char-006', name: '同学乙', avatar: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+  ]);
+  
   const [storyboardItems, setStoryboardItems] = useState<StoryboardItem[]>([
     {
       id: 'sb-001',
@@ -108,8 +130,37 @@ const StaticCreateStep3: React.FC = () => {
   };
 
   const handleAddCharacter = (storyboardId: string) => {
-    console.log('添加角色到分镜，分镜ID:', storyboardId);
-    alert('打开角色选择弹窗');
+    setCurrentStoryboardId(storyboardId);
+    setIsCharacterDialogOpen(true);
+  };
+
+  // 处理角色选择确认
+  const handleCharacterSelectionConfirm = (selectedCharacterIds: string[]) => {
+    if (!currentStoryboardId) return;
+    
+    // 将选中的角色ID转换为角色名称
+    const selectedCharacterNames = selectedCharacterIds.map(id => {
+      const character = availableCharacters.find(char => char.id === id);
+      return character ? character.name : '';
+    }).filter(name => name !== '');
+    
+    // 更新分镜项的角色列表
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === currentStoryboardId 
+          ? { ...item, characters: selectedCharacterNames } 
+          : item
+      )
+    );
+    
+    // 重置状态
+    setCurrentStoryboardId(null);
+  };
+
+  // 关闭角色选择弹窗
+  const handleCloseCharacterDialog = () => {
+    setIsCharacterDialogOpen(false);
+    setCurrentStoryboardId(null);
   };
 
   const handleDeleteStoryboard = (storyboardId: string) => {
@@ -456,6 +507,23 @@ const StaticCreateStep3: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {/* 角色选择弹窗 */}
+      <CharacterSelectDialog
+        isOpen={isCharacterDialogOpen}
+        onClose={handleCloseCharacterDialog}
+        onConfirm={handleCharacterSelectionConfirm}
+        availableCharacters={availableCharacters}
+        initiallySelected={
+          currentStoryboardId 
+            ? storyboardItems.find(item => item.id === currentStoryboardId)?.characters.map(name => {
+                const character = availableCharacters.find(char => char.name === name);
+                return character ? character.id : '';
+              }).filter(id => id !== '') || []
+            : []
+        }
+        storyboardId={currentStoryboardId || ''}
+      />
     </div>
   );
 };
