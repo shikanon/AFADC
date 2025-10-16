@@ -33,6 +33,10 @@ const StaticCreateStep3: React.FC = () => {
   const [isCharacterDialogOpen, setIsCharacterDialogOpen] = useState(false);
   const [currentStoryboardId, setCurrentStoryboardId] = useState<string | null>(null);
   
+  // 图片放大模态框状态
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string>('');
+  
   // 预览图选中状态 - 为每个分镜单独管理
   const [selectedPreviewIndices, setSelectedPreviewIndices] = useState<{[key: string]: number}>({});
   
@@ -195,6 +199,18 @@ const StaticCreateStep3: React.FC = () => {
   const handleSaveToAssetLibrary = () => {
     // 显示成功提示
     alert('成功存入资产库');
+  };
+
+  // 打开图片放大模态框
+  const handleOpenImageModal = (imageUrl: string) => {
+    setModalImageUrl(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
+  // 关闭图片放大模态框
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+    setModalImageUrl('');
   };
 
   const handleDeleteStoryboard = (storyboardId: string) => {
@@ -496,7 +512,7 @@ const StaticCreateStep3: React.FC = () => {
                                 </div>
                               ))}
                             </div>
-                            {/* 按钮区域 - 图片生成和存入资产库 */}
+                            {/* 按钮区域 - 图片生成、图片放大和存入资产库 */}
                             <div className={styles.buttonContainer}>
                               <button 
                                 onClick={() => handleGenerateImage(item.id)}
@@ -504,6 +520,13 @@ const StaticCreateStep3: React.FC = () => {
                                 title="生成图片"
                               >
                                 <i className="fas fa-image mr-2"></i>图片生成
+                              </button>
+                              <button 
+                                onClick={() => handleOpenImageModal(storyboardItems[selectedPreviewIndices[item.id]]?.imageUrl)}
+                                className={styles.enlargeImageButton}
+                                title="放大图片"
+                              >
+                                <i className="fas fa-search-plus mr-2"></i>图片放大
                               </button>
                               <button 
                                 onClick={handleSaveToAssetLibrary}
@@ -568,6 +591,28 @@ const StaticCreateStep3: React.FC = () => {
         }
         storyboardId={currentStoryboardId || ''}
       />
+      
+      {/* 图片放大模态框 */}
+      {isImageModalOpen && (
+        <div className={styles.imageModalOverlay} onClick={handleCloseImageModal}>
+          <div className={styles.imageModalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.imageModalCloseButton}
+              onClick={handleCloseImageModal}
+              title="关闭"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+            <div className={styles.imageModalImageContainer}>
+              <img 
+                src={modalImageUrl} 
+                alt="放大图片" 
+                className={styles.imageModalImage}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

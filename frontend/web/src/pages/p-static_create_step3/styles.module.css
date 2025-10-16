@@ -167,6 +167,26 @@
   background-color: #059669; /* 悬停时深绿色 */
 }
 
+/* 图片放大按钮 */
+.enlargeImageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #8B5CF6; /* 紫色背景，与其他按钮区分 */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.enlargeImageButton:hover {
+  background-color: #7C3AED; /* 悬停时深紫色 */
+}
+
 /* 存入资产库按钮 */
 .saveToAssetButton {
   display: flex;
@@ -185,5 +205,62 @@
 
 .saveToAssetButton:hover {
   background-color: #2563EB;
+}
+
+/* 图片放大模态框样式 */
+.imageModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8); /* 半透明黑色背景 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* 确保在最上层 */
+}
+
+.imageModalContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.imageModalCloseButton {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.imageModalCloseButton:hover {
+  transform: scale(1.1);
+}
+
+.imageModalImageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.imageModalImage {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain; /* 保持图片比例，完整显示 */
+  border-radius: 4px;
 }
 

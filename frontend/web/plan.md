@@ -181,6 +181,172 @@
 - [x] 统一样式风格，确保两个按钮视觉一致
 - [x] 设置按钮间距为8-12px，确保与画面预览区域对齐
 
+---
+
+## 新增修改内容：图片放大功能
+
+### 修改概述
+在画面预览区域下方的"图片生成"和"存入资产库"按钮之间添加一个"图片放大"按钮，点击后弹出模态框展示高清大图，支持关闭返回功能，提升用户查看图片细节的体验。
+
+### 修改内容
+1. 添加图片放大按钮
+   - 在"图片生成"和"存入资产库"按钮之间添加"图片放大"按钮
+   - 使用紫色背景(#8B5CF6)与其他按钮区分
+   - 添加放大镜图标(fa-search-plus)和"图片放大"文字
+
+2. 实现图片放大模态框
+   - 创建全屏半透明黑色背景的模态框
+   - 模态框中展示高清大图，保持图片比例
+   - 图片最大尺寸为视口的90%，确保完整显示
+   - 添加关闭按钮，支持点击关闭和点击背景关闭
+
+3. 添加状态管理
+   - 添加模态框显示状态(isImageModalOpen)
+   - 添加模态框图片URL状态(modalImageUrl)
+   - 实现打开和关闭模态框的处理函数
+
+### 实现细节
+1. 在 `index.tsx` 中添加状态管理：
+   ```typescript
+   // 图片放大模态框状态
+   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+   const [modalImageUrl, setModalImageUrl] = useState<string>('');
+   
+   // 打开图片放大模态框
+   const handleOpenImageModal = (imageUrl: string) => {
+     setModalImageUrl(imageUrl);
+     setIsImageModalOpen(true);
+   };
+   
+   // 关闭图片放大模态框
+   const handleCloseImageModal = () => {
+     setIsImageModalOpen(false);
+     setModalImageUrl('');
+   };
+   ```
+
+2. 在 `index.tsx` 中添加图片放大按钮：
+   ```typescript
+   <button 
+     onClick={() => handleOpenImageModal(storyboardItems[selectedPreviewIndices[item.id]]?.imageUrl)}
+     className={styles.enlargeImageButton}
+     title="放大图片"
+   >
+     <i className="fas fa-search-plus mr-2"></i>图片放大
+   </button>
+   ```
+
+3. 在 `index.tsx` 中添加图片放大模态框组件：
+   ```typescript
+   {isImageModalOpen && (
+     <div className={styles.imageModalOverlay} onClick={handleCloseImageModal}>
+       <div className={styles.imageModalContent} onClick={(e) => e.stopPropagation()}>
+         <button 
+           className={styles.imageModalCloseButton}
+           onClick={handleCloseImageModal}
+           title="关闭"
+         >
+           <i className="fas fa-times"></i>
+         </button>
+         <div className={styles.imageModalImageContainer}>
+           <img 
+             src={modalImageUrl} 
+             alt="放大图片" 
+             className={styles.imageModalImage}
+           />
+         </div>
+       </div>
+     </div>
+   )}
+   ```
+
+4. 在 `styles.module.css` 中添加图片放大按钮和模态框样式：
+   ```css
+   /* 图片放大按钮 */
+   .enlargeImageButton {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 8px 16px;
+     background-color: #8B5CF6; /* 紫色背景，与其他按钮区分 */
+     color: white;
+     border: none;
+     border-radius: 6px;
+     font-size: 14px;
+     font-weight: 500;
+     cursor: pointer;
+     transition: background-color 0.2s ease;
+   }
+   
+   .enlargeImageButton:hover {
+     background-color: #7C3AED; /* 悬停时深紫色 */
+   }
+   
+   /* 图片放大模态框样式 */
+   .imageModalOverlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background-color: rgba(0, 0, 0, 0.8); /* 半透明黑色背景 */
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     z-index: 1000; /* 确保在最上层 */
+   }
+   
+   .imageModalContent {
+     position: relative;
+     max-width: 90vw;
+     max-height: 90vh;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+   }
+   
+   .imageModalCloseButton {
+     position: absolute;
+     top: -40px;
+     right: 0;
+     background: none;
+     border: none;
+     color: white;
+     font-size: 24px;
+     cursor: pointer;
+     padding: 8px;
+     transition: transform 0.2s ease;
+   }
+   
+   .imageModalCloseButton:hover {
+     transform: scale(1.1);
+   }
+   
+   .imageModalImageContainer {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 100%;
+     height: 100%;
+     overflow: hidden;
+     border-radius: 8px;
+   }
+   
+   .imageModalImage {
+     max-width: 100%;
+     max-height: 80vh;
+     object-fit: contain; /* 保持图片比例，完整显示 */
+     border-radius: 4px;
+   }
+   ```
+
+### 完成状态
+- [x] 在图片生成和存入资产库按钮之间添加图片放大按钮
+- [x] 创建图片放大模态框组件
+- [x] 实现模态框的显示和隐藏逻辑
+- [x] 在模态框中展示高清大图
+- [x] 添加模态框关闭功能
+
 ## 测试结果
 - 页面正常加载，无编译错误
 - 预览图尺寸放大，采用4:3比例
@@ -188,3 +354,6 @@
 - 选中状态正常工作，第一张默认选中
 - 存入资产库按钮正常显示和交互
 - 每个分镜的画面预览可以独立选择，相互不影响
+- 图片生成按钮成功迁移至画面预览区域下方
+- 图片放大按钮正常显示和交互，点击后弹出模态框
+- 模态框中高清大图正常显示，支持关闭返回功能
