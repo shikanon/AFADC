@@ -12,7 +12,7 @@ interface StoryboardItem {
   characters: string[];
   script: string;
   subtitle: string; // 新增字幕字段
-  imageUrl: string;
+  previewImages: string[]; // 改为数组，支持多张预览图
   prompt: string;
 }
 
@@ -57,7 +57,11 @@ const StaticCreateStep3: React.FC = () => {
       characters: ['莉莉亚'],
       script: '阳光明媚的早晨，莉莉亚站在魔法学院的大门前，眼中闪烁着激动的光芒。学院的建筑宏伟壮观，充满了神秘的气息。',
       subtitle: '', // 新增字幕字段，初始为空
-      imageUrl: 'https://s.coze.cn/image/hXT9hwKARBE/',
+      previewImages: [
+        'https://s.coze.cn/image/hXT9hwKARBE/',
+        'https://s.coze.cn/image/TwWQkCHpzu0/',
+        'https://s.coze.cn/image/5xjn0yDZY4Q/'
+      ], // 每个分镜3张预览图
       prompt: '阳光明媚的早晨，魔法学院大门前，一个年轻的女孩站在那里，眼中充满期待，建筑宏伟壮观，神秘的魔法氛围'
     },
     {
@@ -66,7 +70,11 @@ const StaticCreateStep3: React.FC = () => {
       characters: ['莉莉亚', '艾米'],
       script: '莉莉亚走进学院，遇到了同样新的艾米。两个女孩很快就聊了起来，发现彼此有很多共同的兴趣爱好。',
       subtitle: '', // 新增字幕字段，初始为空
-      imageUrl: 'https://s.coze.cn/image/TwWQkCHpzu0/',
+      previewImages: [
+        'https://s.coze.cn/image/TwWQkCHpzu0/',
+        'https://s.coze.cn/image/5xjn0yDZY4Q/',
+        'https://s.coze.cn/image/dDJ1MTK9Gr0/'
+      ], // 每个分镜3张预览图
       prompt: '学院走廊里，两个年轻女孩在交谈，表情友好，背景是魔法学院的内部装饰'
     },
     {
@@ -75,7 +83,11 @@ const StaticCreateStep3: React.FC = () => {
       characters: ['莉莉亚', '艾米'],
       script: '艾米热情地带着莉莉亚参观学院的各个设施，包括图书馆、魔法练习室和餐厅。莉莉亚对这里的一切都感到新奇。',
       subtitle: '', // 新增字幕字段，初始为空
-      imageUrl: 'https://s.coze.cn/image/5xjn0yDZY4Q/',
+      previewImages: [
+        'https://s.coze.cn/image/5xjn0yDZY4Q/',
+        'https://s.coze.cn/image/dDJ1MTK9Gr0/',
+        'https://s.coze.cn/image/hXT9hwKARBE/'
+      ], // 每个分镜3张预览图
       prompt: '两个女孩在魔法学院的走廊里行走，背景是图书馆的大门，充满知识的氛围'
     },
     {
@@ -84,7 +96,11 @@ const StaticCreateStep3: React.FC = () => {
       characters: ['莉莉亚', '艾米'],
       script: '参观结束后，莉莉亚和艾米坐在学院的花园里，畅谈着未来的梦想和期望。夕阳的余晖洒在她们身上，为这美好的第一天画上了完美的句号。',
       subtitle: '', // 新增字幕字段，初始为空
-      imageUrl: 'https://s.coze.cn/image/dDJ1MTK9Gr0/',
+      previewImages: [
+        'https://s.coze.cn/image/dDJ1MTK9Gr0/',
+        'https://s.coze.cn/image/hXT9hwKARBE/',
+        'https://s.coze.cn/image/TwWQkCHpzu0/'
+      ], // 每个分镜3张预览图
       prompt: '学院花园里，两个女孩坐在长椅上交谈，夕阳西下，温暖的光线洒在她们身上，充满希望氛围'
     }
   ]);
@@ -498,16 +514,15 @@ const StaticCreateStep3: React.FC = () => {
                           <div className={styles.previewContainer}>
                             {/* 预览图横向排列 */}
                             <div className={styles.previewImagesContainer}>
-                              {storyboardItems.slice(0, 3).map((previewItem, index) => (
+                              {item.previewImages.map((previewImage, index) => (
                                 <div 
-                                  key={previewItem.id}
+                                  key={index}
                                   className={`${styles.previewImageWrapper} ${selectedPreviewIndices[item.id] === index ? styles.selected : ''}`}
                                   onClick={() => handlePreviewSelect(item.id, index)}
                                 >
                                   <img 
-                                    src={previewItem.imageUrl}
-                                    alt={`预览图 ${index + 1}`} 
-                                    className={styles.previewImage}
+                                    src={previewImage}
+                                    alt={`预览图 ${index + 1}`}
                                   />
                                 </div>
                               ))}
@@ -522,7 +537,7 @@ const StaticCreateStep3: React.FC = () => {
                                 <i className="fas fa-image mr-2"></i>图片生成
                               </button>
                               <button 
-                                onClick={() => handleOpenImageModal(storyboardItems[selectedPreviewIndices[item.id]]?.imageUrl)}
+                                onClick={() => handleOpenImageModal(item.previewImages[selectedPreviewIndices[item.id]])}
                                 className={styles.enlargeImageButton}
                                 title="放大图片"
                               >
