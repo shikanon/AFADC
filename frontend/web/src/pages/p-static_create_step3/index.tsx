@@ -4,12 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
 import CharacterSelectDialog from './CharacterSelectDialog';
+import SceneSelectDialog from './SceneSelectDialog';
 import styles from './styles.module.css';
 
 interface StoryboardItem {
   id: string;
   number: number;
   characters: string[];
+  scene: string; // 新增场景字段
   script: string;
   subtitle: string; // 新增字幕字段
   previewImages: string[]; // 改为数组，支持多张预览图
@@ -22,6 +24,12 @@ interface Character {
   avatar: string;
 }
 
+interface Scene {
+  id: string;
+  name: string;
+  image: string;
+}
+
 const StaticCreateStep3: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -31,6 +39,9 @@ const StaticCreateStep3: React.FC = () => {
   
   // 角色选择弹窗状态
   const [isCharacterDialogOpen, setIsCharacterDialogOpen] = useState(false);
+  
+  // 场景选择弹窗状态
+  const [isSceneDialogOpen, setIsSceneDialogOpen] = useState(false);
   const [currentStoryboardId, setCurrentStoryboardId] = useState<string | null>(null);
   
   // 图片放大模态框状态
@@ -50,11 +61,22 @@ const StaticCreateStep3: React.FC = () => {
     { id: 'char-006', name: '同学乙', avatar: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
   ]);
   
+  // 可用场景数据
+  const [availableScenes] = useState<Scene[]>([
+    { id: 'scene-001', name: '魔法学院', image: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'scene-002', name: '图书馆', image: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+    { id: 'scene-003', name: '花园', image: 'https://s.coze.cn/image/5xjn0yDZY4Q/' },
+    { id: 'scene-004', name: '教室', image: 'https://s.coze.cn/image/dDJ1MTK9Gr0/' },
+    { id: 'scene-005', name: '走廊', image: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'scene-006', name: '餐厅', image: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+  ]);
+  
   const [storyboardItems, setStoryboardItems] = useState<StoryboardItem[]>([
     {
       id: 'sb-001',
       number: 1,
       characters: ['莉莉亚'],
+      scene: '魔法学院', // 新增场景字段
       script: '阳光明媚的早晨，莉莉亚站在魔法学院的大门前，眼中闪烁着激动的光芒。学院的建筑宏伟壮观，充满了神秘的气息。',
       subtitle: '', // 新增字幕字段，初始为空
       previewImages: [
@@ -68,6 +90,7 @@ const StaticCreateStep3: React.FC = () => {
       id: 'sb-002',
       number: 2,
       characters: ['莉莉亚', '艾米'],
+      scene: '走廊', // 新增场景字段
       script: '莉莉亚走进学院，遇到了同样新的艾米。两个女孩很快就聊了起来，发现彼此有很多共同的兴趣爱好。',
       subtitle: '', // 新增字幕字段，初始为空
       previewImages: [
@@ -81,6 +104,7 @@ const StaticCreateStep3: React.FC = () => {
       id: 'sb-003',
       number: 3,
       characters: ['莉莉亚', '艾米'],
+      scene: '图书馆', // 新增场景字段
       script: '艾米热情地带着莉莉亚参观学院的各个设施，包括图书馆、魔法练习室和餐厅。莉莉亚对这里的一切都感到新奇。',
       subtitle: '', // 新增字幕字段，初始为空
       previewImages: [
@@ -94,6 +118,7 @@ const StaticCreateStep3: React.FC = () => {
       id: 'sb-004',
       number: 4,
       characters: ['莉莉亚', '艾米'],
+      scene: '花园', // 新增场景字段
       script: '参观结束后，莉莉亚和艾米坐在学院的花园里，畅谈着未来的梦想和期望。夕阳的余晖洒在她们身上，为这美好的第一天画上了完美的句号。',
       subtitle: '', // 新增字幕字段，初始为空
       previewImages: [
@@ -164,11 +189,6 @@ const StaticCreateStep3: React.FC = () => {
     alert('正在生成分镜图片，请稍候...');
   };
 
-  const handleEditStoryboard = (storyboardId: string) => {
-    console.log('打开分镜编辑弹窗，分镜ID:', storyboardId);
-    alert('打开分镜编辑弹窗');
-  };
-
   const handleAddCharacter = (storyboardId: string) => {
     setCurrentStoryboardId(storyboardId);
     setIsCharacterDialogOpen(true);
@@ -200,6 +220,38 @@ const StaticCreateStep3: React.FC = () => {
   // 关闭角色选择弹窗
   const handleCloseCharacterDialog = () => {
     setIsCharacterDialogOpen(false);
+    setCurrentStoryboardId(null);
+  };
+
+  // 处理场景选择
+  const handleAddScene = (storyboardId: string) => {
+    setCurrentStoryboardId(storyboardId);
+    setIsSceneDialogOpen(true);
+  };
+
+  // 处理场景选择确认
+  const handleSceneSelectionConfirm = (selectedSceneId: string, storyboardId: string) => {
+    if (!currentStoryboardId) return;
+    
+    // 将选中的场景ID转换为场景名称
+    const selectedSceneName = availableScenes.find(scene => scene.id === selectedSceneId)?.name || '';
+    
+    // 更新分镜项的场景
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === currentStoryboardId 
+          ? { ...item, scene: selectedSceneName } 
+          : item
+      )
+    );
+    
+    // 重置状态
+    setCurrentStoryboardId(null);
+  };
+
+  // 关闭场景选择弹窗
+  const handleCloseSceneDialog = () => {
+    setIsSceneDialogOpen(false);
     setCurrentStoryboardId(null);
   };
 
@@ -432,7 +484,7 @@ const StaticCreateStep3: React.FC = () => {
                     
                     {/* 分镜信息 - 左右分栏布局 */}
                     <div className={`flex-1 ${styles.storyboardLayout}`}>
-                      {/* 左列：关联角色、分镜脚本、分镜字幕 */}
+                      {/* 左列：关联角色、关联场景、分镜脚本、分镜字幕 */}
                       <div className={styles.leftColumn}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
@@ -448,11 +500,11 @@ const StaticCreateStep3: React.FC = () => {
                               <i className="fas fa-user-plus"></i>
                             </button>
                             <button 
-                              onClick={() => handleEditStoryboard(item.id)}
-                              className="text-text-secondary hover:text-text-primary text-sm" 
-                              title="编辑"
+                              onClick={() => handleAddScene(item.id)}
+                              className="text-primary hover:text-blue-600 text-sm" 
+                              title="添加场景"
                             >
-                              <i className="fas fa-edit"></i>
+                              <i className="fas fa-image"></i>
                             </button>
                             <button 
                               onClick={() => handleDeleteStoryboard(item.id)}
@@ -464,13 +516,26 @@ const StaticCreateStep3: React.FC = () => {
                           </div>
                         </div>
                         
-                        {/* 关联角色 */}
-                        <div>
-                          <label className={styles.unifiedLabel}>关联角色</label>
-                          <div className="flex flex-wrap gap-1">
-                            {item.characters.map((character, index) => (
-                              <span key={index} className={styles.characterTag}>{character}</span>
-                            ))}
+                        {/* 关联角色和关联场景 - 同一行显示 */}
+                        <div className="flex space-x-4">
+                          {/* 关联角色 */}
+                          <div className="flex-1">
+                            <label className={styles.unifiedLabel}>关联角色</label>
+                            <div className="flex flex-wrap gap-1">
+                              {item.characters.map((character, index) => (
+                                <span key={index} className={styles.characterTag}>{character}</span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* 关联场景 */}
+                          <div className="flex-1">
+                            <label className={styles.unifiedLabel}>关联场景</label>
+                            <div className="flex flex-wrap gap-1">
+                              {item.scene && (
+                                <span className={styles.sceneTag}>{item.scene}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         
@@ -603,6 +668,20 @@ const StaticCreateStep3: React.FC = () => {
                 return character ? character.id : '';
               }).filter(id => id !== '') || []
             : []
+        }
+        storyboardId={currentStoryboardId || ''}
+      />
+      
+      {/* 场景选择弹窗 */}
+      <SceneSelectDialog
+        isOpen={isSceneDialogOpen}
+        onClose={handleCloseSceneDialog}
+        onConfirm={handleSceneSelectionConfirm}
+        availableScenes={availableScenes}
+        initiallySelected={
+          currentStoryboardId 
+            ? storyboardItems.find(item => item.id === currentStoryboardId)?.scene || ''
+            : ''
         }
         storyboardId={currentStoryboardId || ''}
       />

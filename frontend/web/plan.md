@@ -183,6 +183,153 @@
 
 ---
 
+## 新增修改内容：添加关联场景模块
+
+### 修改概述
+在「关联角色」模块右侧平行新增「关联场景」模块，通过"视觉统一+清晰交互"保障体验。在添加角色按钮旁边增加添加场景按钮，点击会弹出选择场景弹窗，样式和选择角色弹窗一样，选择场景为单选。
+
+### 修改内容
+1. 创建场景选择对话框组件
+   - 创建 `SceneSelectDialog.tsx` 组件，支持单选场景
+   - 创建 `SceneSelectDialog.module.css` 样式文件，与角色选择对话框保持视觉统一
+   - 场景选择为单选模式，区别于角色选择的多选模式
+
+2. 修改数据结构
+   - 在 `StoryboardItem` 接口中添加 `scene` 字段，存储选中的场景
+   - 添加场景数据类型 `Scene` 接口
+   - 添加可用场景数据 `availableScenes` 状态
+
+3. 添加场景相关状态和函数
+   - 添加场景选择弹窗状态 `isSceneDialogOpen`
+   - 添加当前分镜ID状态 `currentStoryboardId`（复用已有状态）
+   - 添加处理场景选择确认的函数 `handleSceneSelectionConfirm`
+   - 添加关闭场景选择弹窗的函数 `handleCloseSceneDialog`
+   - 添加处理场景选择的函数 `handleAddScene`
+
+4. 修改UI界面
+   - 在「关联角色」模块右侧平行新增「关联场景」模块
+   - 在添加角色按钮旁边增加添加场景按钮
+   - 添加场景选择弹窗组件
+   - 确保场景模块与角色模块视觉统一
+
+### 实现细节
+1. 创建场景选择对话框组件：
+   ```typescript
+   // SceneSelectDialog.tsx
+   interface Scene {
+     id: string;
+     name: string;
+     image: string;
+   }
+   
+   // 单选模式，使用单个字符串存储选中的场景ID
+   const [selectedScene, setSelectedScene] = useState<string>(initiallySelected);
+   ```
+
+2. 修改数据结构：
+   ```typescript
+   // 在 StoryboardItem 接口中添加 scene 字段
+   interface StoryboardItem {
+     // ... 其他字段
+     scene: string; // 新增场景字段
+   }
+   ```
+
+3. 添加场景相关状态和函数：
+   ```typescript
+   // 场景选择弹窗状态
+   const [isSceneDialogOpen, setIsSceneDialogOpen] = useState(false);
+   
+   // 可用场景数据
+   const [availableScenes] = useState<Scene[]>([
+     { id: 'scene-001', name: '魔法学院', image: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+     { id: 'scene-002', name: '图书馆', image: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+     { id: 'scene-003', name: '花园', image: 'https://s.coze.cn/image/5xjn0yDZY4Q/' },
+     { id: 'scene-004', name: '教室', image: 'https://s.coze.cn/image/dDJ1MTK9Gr0/' },
+   ]);
+   
+   // 处理场景选择
+   const handleAddScene = (storyboardId: string) => {
+     setCurrentStoryboardId(storyboardId);
+     setIsSceneDialogOpen(true);
+   };
+   
+   // 处理场景选择确认
+   const handleSceneSelectionConfirm = (selectedSceneId: string) => {
+     if (!currentStoryboardId) return;
+     
+     // 将选中的场景ID转换为场景名称
+     const selectedSceneName = availableScenes.find(scene => scene.id === selectedSceneId)?.name || '';
+     
+     // 更新分镜项的场景
+     setStoryboardItems(prevItems =>
+       prevItems.map(item =>
+         item.id === currentStoryboardId 
+           ? { ...item, scene: selectedSceneName } 
+           : item
+       )
+     );
+     
+     // 重置状态
+     setCurrentStoryboardId(null);
+   };
+   ```
+
+4. 修改UI界面：
+   ```typescript
+   // 在添加角色按钮旁边增加添加场景按钮
+   <button 
+     onClick={() => handleAddCharacter(item.id)}
+     className="text-primary hover:text-blue-600 text-sm" 
+     title="添加角色"
+   >
+     <i className="fas fa-user-plus"></i>
+   </button>
+   <button 
+     onClick={() => handleAddScene(item.id)}
+     className="text-primary hover:text-blue-600 text-sm" 
+     title="添加场景"
+   >
+     <i className="fas fa-image"></i>
+   </button>
+   
+   // 在「关联角色」模块右侧平行新增「关联场景」模块
+   <div className={styles.rightColumn}>
+     {/* 关联场景 */}
+     <div>
+       <label className={styles.unifiedLabel}>关联场景</label>
+       <div className="flex flex-wrap gap-1">
+         {item.scene && (
+           <span className={styles.sceneTag}>{item.scene}</span>
+         )}
+       </div>
+     </div>
+     {/* ... 其他内容 */}
+   </div>
+   ```
+
+5. 添加场景标签样式：
+   ```css
+   /* 场景标签样式 */
+   .sceneTag {
+     padding: 2px 6px;
+     border-radius: 8px;
+     font-size: 12px;
+     background-color: #F3E8FF; /* 紫色背景，与角色标签区分 */
+     color: #6B21A8;
+   }
+   ```
+
+### 完成状态
+- [ ] 创建场景选择对话框组件
+- [ ] 修改数据结构，添加场景字段
+- [ ] 添加场景相关状态和函数
+- [ ] 修改UI界面，添加关联场景模块
+- [ ] 添加场景标签样式
+- [ ] 测试场景选择功能
+
+---
+
 ## 新增修改内容：图片放大功能
 
 ### 修改概述
