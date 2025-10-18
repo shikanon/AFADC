@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
-import { VoiceConfigDialog } from '../../components/Common'; // 导入配音配置弹窗组件
+import { VoiceConfigDialog, Toast } from '../../components/Common'; // 导入配音配置弹窗组件和 Toast 组件
 import styles from './styles.module.css';
+import AssetSelectDialog from './AssetSelectDialog'; // 导入资产选择弹窗组件
 
 interface CharacterData {
   id: string;
@@ -60,6 +61,12 @@ const StaticCreateStep2: React.FC = () => {
   const [characterInfo, setCharacterInfo] = useState(''); // 角色信息配置状态
   const [voiceConfigDialogVisible, setVoiceConfigDialogVisible] = useState(false); // 配音配置弹窗可见性
   const [currentVoiceConfigCharacter, setCurrentVoiceConfigCharacter] = useState<CharacterData | null>(null); // 当前配音配置角色
+  // 资产选择弹窗相关状态
+  const [assetSelectDialogVisible, setAssetSelectDialogVisible] = useState(false); // 资产选择弹窗可见性
+  const [currentCharacterId, setCurrentCharacterId] = useState<string | null>(null); // 当前选择资产的角色ID
+  const [toastMessage, setToastMessage] = useState(''); // Toast 消息
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('success'); // Toast 类型
+  const [isToastVisible, setIsToastVisible] = useState(false); // Toast 可见性
   const audioPlayerRef = useRef<HTMLAudioElement>(new Audio());
 
   useEffect(() => {
@@ -173,7 +180,45 @@ const StaticCreateStep2: React.FC = () => {
   };
 
   const handleSelectCharacter = (characterId: string) => {
-    console.log('打开资产选择弹窗选择角色形象');
+    // 打开资产选择弹窗
+    setCurrentCharacterId(characterId);
+    setAssetSelectDialogVisible(true);
+  };
+
+  // 关闭资产选择弹窗
+  const handleCloseAssetSelectDialog = () => {
+    setAssetSelectDialogVisible(false);
+    setCurrentCharacterId(null);
+  };
+
+  // 确认资产选择
+  const handleConfirmAssetSelect = (selectedAssets: any[]) => {
+    if (currentCharacterId && selectedAssets.length > 0) {
+      // 更新角色的图片
+      setCharacters(prev => prev.map(char => {
+        if (char.id === currentCharacterId) {
+          // 使用选中的资产图片URL替换角色图片
+          const newImages = selectedAssets.map(asset => asset.url);
+          // 如果选中的图片少于3张，保留原有的图片
+          const updatedImages = [...newImages];
+          while (updatedImages.length < 3 && updatedImages.length < char.images.length) {
+            updatedImages.push(char.images[updatedImages.length]);
+          }
+          return { ...char, images: updatedImages };
+        }
+        return char;
+      }));
+      
+      // 显示成功提示
+      setToastMessage('角色图片替换成功');
+      setToastType('success');
+      setIsToastVisible(true);
+    }
+  };
+
+  // 关闭 Toast 提示
+  const handleCloseToast = () => {
+    setIsToastVisible(false);
   };
 
   const handleDeleteCharacter = (characterId: string) => {
@@ -487,6 +532,30 @@ const StaticCreateStep2: React.FC = () => {
         onClose={handleCloseVoiceConfigDialog}
         onConfirm={handleConfirmVoiceConfig}
       />
+      
+      {/* 资产选择弹窗 */}
+      <AssetSelectDialog
+        isOpen={assetSelectDialogVisible}
+        onClose={handleCloseAssetSelectDialog}
+        onConfirm={handleConfirmAssetSelect}
+        initialSelectedAssets={currentCharacterId ? characters.find(char => char.id === currentCharacterId)?.images.map((url, index) => ({
+          id: `asset-${currentCharacterId}-${index}`,
+          name: `角色${characters.find(char => char.id === currentCharacterId)?.name}形象${index + 1}`,
+          type: 'image',
+          url: url,
+          tags: ['角色', characters.find(char => char.id === currentCharacterId)?.role || '']
+        })) || [] : []}
+      />
+      
+      {/* Toast 提示 */}
+      {isToastVisible && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          duration={3000}
+          onClose={handleCloseToast}
+        />
+      )}
     </div>
   );
 };

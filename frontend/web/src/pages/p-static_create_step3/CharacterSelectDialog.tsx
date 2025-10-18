@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './CharacterSelectDialog.module.css';
 
 interface Character {
@@ -24,7 +24,14 @@ const CharacterSelectDialog: React.FC<CharacterSelectDialogProps> = ({
   initiallySelected,
   storyboardId
 }) => {
-  const [selectedCharacters, setSelectedCharacters] = useState<string[]>(initiallySelected);
+  const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
+
+  // 当弹窗打开时，更新选中的角色状态
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedCharacters(initiallySelected);
+    }
+  }, [isOpen, initiallySelected]);
 
   const handleCharacterToggle = (characterId: string) => {
     setSelectedCharacters(prev => {

@@ -6,6 +6,8 @@ interface SidebarProps {
   isCollapsed: boolean;
   /** 当前激活的菜单项 */
   activeMenu?: string;
+  /** 当前路径（用于自动匹配激活菜单项） */
+  currentPath?: string;
   /** 菜单项点击回调 */
   onMenuClick?: (menuKey: string) => void;
 }
@@ -24,7 +26,8 @@ interface MenuItem {
  */
 const Sidebar: React.FC<SidebarProps> = ({ 
   isCollapsed, 
-  activeMenu = 'asset-manage',
+  activeMenu,
+  currentPath,
   onMenuClick 
 }) => {
   // 菜单项配置
@@ -35,6 +38,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     { key: 'plan-manage', icon: 'fa-crown', label: '套餐管理', path: '/plan-manage' },
     { key: 'api-key-setting', icon: 'fa-key', label: 'API密钥设置', path: '/api-key-setting' },
   ];
+
+  // 根据currentPath自动确定激活菜单项
+  const computedActiveMenu = activeMenu || 
+    menuItems.find(item => currentPath?.includes(item.path))?.key || 
+    'asset-manage';
 
   return (
     <aside className={`fixed left-0 top-16 bottom-0 bg-white border-r border-border-light transition-all duration-300 z-40 ${
@@ -47,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             to={item.path}
             onClick={() => onMenuClick?.(item.key)}
             className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-              activeMenu === item.key 
+              computedActiveMenu === item.key 
                 ? 'bg-primary text-white' 
                 : 'text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
             }`}
