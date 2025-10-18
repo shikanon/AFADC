@@ -89,8 +89,8 @@ const StaticCreateStep2: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [isSidebarCollapsed]);
 
-  const handleSidebarToggle = (collapsed: boolean) => {
-    setIsSidebarCollapsed(collapsed);
+  const handleSidebarToggle = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
   const handleSpeedChange = (characterId: string, newSpeed: number) => {
@@ -282,10 +282,10 @@ const StaticCreateStep2: React.FC = () => {
           {/* 页面头部 - 使用PageHeader组件 */}
           <PageHeader 
             title="AI静态漫制作 - 确认角色"
-            breadcrumb={[
-              { label: '首页', href: '/' },
-              { label: '项目管理', href: '/project-manage' },
-              { label: 'AI静态漫制作', active: true }
+            breadcrumbs={[
+              { label: '首页', path: '/' },
+              { label: '项目管理', path: '/project-manage' },
+              { label: 'AI静态漫制作' }
             ]}
           />
 
