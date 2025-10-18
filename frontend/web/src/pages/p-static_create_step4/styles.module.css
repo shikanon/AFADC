@@ -61,6 +61,8 @@
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.2s ease;
+  background-color: #FFFFFF;
+  cursor: pointer;
 }
 
 .formControl:focus {
@@ -80,7 +82,9 @@
 .videoActions {
   display: flex;
   gap: 16px;
-  margin-top: 24px;
+  margin: 0 auto 16px auto;
   justify-content: center;
+  width: fit-content;
+  align-items: center;
 }
 

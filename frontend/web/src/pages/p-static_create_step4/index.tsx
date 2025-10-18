@@ -5,6 +5,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
 import styles from './styles.module.css';
 
+// 在文件顶部添加音乐数据类型定义
+interface MusicOption {
+  id: string;
+  name: string;
+  duration: string;
+  url: string;
+}
+
 const StaticCreateStep4: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,6 +29,10 @@ const StaticCreateStep4: React.FC = () => {
   const [videoDuration, setVideoDuration] = useState('auto');
   const [outputFormat, setOutputFormat] = useState('mp4');
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  
+  // 添加模态弹窗状态
+  const [isBgmModalOpen, setIsBgmModalOpen] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
 
   // 设置页面标题
   useEffect(() => {
@@ -49,13 +61,31 @@ const StaticCreateStep4: React.FC = () => {
     setIsSidebarCollapsed(collapsed);
   };
 
-  const handlePreviewMusic = () => {
-    if (backgroundMusic) {
-      console.log('试听背景音乐:', backgroundMusic);
-      alert('正在试听背景音乐...');
-    } else {
-      alert('请先选择背景音乐');
-    }
+  // 打开BGM选择模态弹窗
+  const handleOpenBgmModal = () => {
+    setIsBgmModalOpen(true);
+  };
+
+  // 关闭BGM选择模态弹窗
+  const handleCloseBgmModal = () => {
+    setIsBgmModalOpen(false);
+    setCurrentlyPlaying(null);
+  };
+
+  // 选择背景音乐
+  const handleSelectMusic = (musicId: string) => {
+    setBackgroundMusic(musicId);
+    handleCloseBgmModal();
+  };
+
+  // 试听背景音乐
+  const handlePreviewMusic = (musicId: string) => {
+    console.log('试听背景音乐:', musicId);
+    setCurrentlyPlaying(musicId);
+    // 模拟试听功能
+    setTimeout(() => {
+      setCurrentlyPlaying(null);
+    }, 3000);
   };
 
   const handleGenerateVideo = () => {
@@ -149,22 +179,18 @@ const StaticCreateStep4: React.FC = () => {
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="background-music">背景音乐</label>
               <div className="flex items-center space-x-4">
-                <select 
-                  id="background-music" 
-                  value={backgroundMusic}
-                  onChange={(e) => setBackgroundMusic(e.target.value)}
-                  className={`${styles.formControl} flex-1`}
-                >
-                  <option value="">无背景音乐</option>
-                  <option value="bgm-001">轻松愉快 - 青春校园</option>
-                  <option value="bgm-002">神秘悬疑 - 魔法世界</option>
-                  <option value="bgm-003">温馨治愈 - 日常故事</option>
-                  <option value="bgm-004">紧张刺激 - 冒险动作</option>
-                  <option value="bgm-005">浪漫唯美 - 爱情故事</option>
-                </select>
                 <button 
-                  onClick={handlePreviewMusic}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  onClick={handleOpenBgmModal}
+                  className={`${styles.formControl} flex-1 text-left`}
+                >
+                  {backgroundMusic 
+                    ? musicOptions.find(music => music.id === backgroundMusic)?.name 
+                    : "无背景音乐"}
+                </button>
+                <button 
+                  onClick={() => backgroundMusic && handlePreviewMusic(backgroundMusic)}
+                  disabled={!backgroundMusic}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-play mr-2"></i>试听
                 </button>
@@ -212,26 +238,10 @@ const StaticCreateStep4: React.FC = () => {
                     className={styles.colorPicker}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">背景透明度</label>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="100" 
-                    value={subtitleOpacity}
-                    onChange={(e) => setSubtitleOpacity(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-text-secondary mt-1">
-                    <span>透明</span>
-                    <span>{subtitleOpacity}%</span>
-                    <span>不透明</span>
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* 视频效果设置 */}
+            {/* 视频配置设置 */}
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>视频效果</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -242,24 +252,9 @@ const StaticCreateStep4: React.FC = () => {
                     onChange={(e) => setTransitionEffect(e.target.value)}
                     className={styles.formControl}
                   >
-                    <option value="fade">淡入淡出</option>
-                    <option value="slide">滑动</option>
-                    <option value="zoom">缩放</option>
+                    <option value="fade">AI智能转场</option>
                     <option value="none">无转场</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-2">视频时长</label>
-                  <select 
-                    value={videoDuration}
-                    onChange={(e) => setVideoDuration(e.target.value)}
-                    className={styles.formControl}
-                  >
-                    <option value="auto">自动计算</option>
-                    <option value="30">30秒</option>
-                    <option value="60">1分钟</option>
-                    <option value="120">2分钟</option>
-                    <option value="180">3分钟</option>
+                    <option value="slide">滑动</option>
                   </select>
                 </div>
                 <div>
@@ -276,12 +271,44 @@ const StaticCreateStep4: React.FC = () => {
                 </div>
               </div>
             </div>
+
           </div>
 
           {/* 视频预览区 */}
           <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
             <h3 className="text-lg font-semibold text-text-primary mb-4">视频预览</h3>
             
+            {/* 视频操作按钮 */}
+            <div className={styles.videoActions}>
+              <button 
+                onClick={handleGenerateVideo}
+                disabled={isGeneratingVideo}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+              >
+                {isGeneratingVideo ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>生成中...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-magic mr-2"></i>生成最终视频
+                  </>
+                )}
+              </button>
+              <button 
+                onClick={handleDownloadVideo}
+                className="px-6 py-3 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors flex items-center"
+              >
+                <i className="fas fa-download mr-2"></i>下载视频
+              </button>
+              <button 
+                onClick={handleJumpToClip}
+                className="px-6 py-3 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center"
+              >
+                <i className="fas fa-external-link-alt mr-2"></i>一键跳转剪映编辑
+              </button>
+            </div>
+
             {/* 视频播放器 */}
             <div className={`${styles.videoContainer} mb-4`}>
               <video 
@@ -316,37 +343,6 @@ const StaticCreateStep4: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* 视频操作按钮 */}
-            <div className={styles.videoActions}>
-              <button 
-                onClick={handleGenerateVideo}
-                disabled={isGeneratingVideo}
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
-              >
-                {isGeneratingVideo ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>生成中...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-magic mr-2"></i>生成最终视频
-                  </>
-                )}
-              </button>
-              <button 
-                onClick={handleDownloadVideo}
-                className="px-6 py-3 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors flex items-center"
-              >
-                <i className="fas fa-download mr-2"></i>下载视频
-              </button>
-              <button 
-                onClick={handleJumpToClip}
-                className="px-6 py-3 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center"
-              >
-                <i className="fas fa-external-link-alt mr-2"></i>一键跳转剪映编辑
-              </button>
-            </div>
           </div>
 
           {/* 操作按钮区 */}
@@ -372,6 +368,69 @@ const StaticCreateStep4: React.FC = () => {
               </button>
             </div>
           </div>
+          
+          {/* BGM选择模态弹窗 */}
+          {isBgmModalOpen && (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={handleCloseBgmModal}
+            >
+              <div 
+                className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* 弹窗头部 */}
+                <div className="px-6 py-4 border-b border-border-light flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-text-primary">选择BGM</h3>
+                  <button 
+                    onClick={handleCloseBgmModal}
+                    className="p-1 rounded-lg hover:bg-bg-secondary transition-colors"
+                  >
+                    <i className="fas fa-times text-text-secondary"></i>
+                  </button>
+                </div>
+                
+                {/* 弹窗内容 - 音乐列表 */}
+                <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+                  {musicOptions.map((music) => (
+                    <div 
+                      key={music.id}
+                      className="px-6 py-4 border-b border-border-light hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-between"
+                      onClick={() => handleSelectMusic(music.id)}
+                    >
+                      <div>
+                        <div className="font-medium text-text-primary">{music.name}</div>
+                        <div className="text-sm text-text-secondary">{music.duration}</div>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreviewMusic(music.id);
+                        }}
+                        className="px-3 py-1 text-primary hover:text-blue-600 transition-colors"
+                      >
+                        {currentlyPlaying === music.id ? (
+                          <i className="fas fa-spinner fa-spin"></i>
+                        ) : (
+                          <i className="fas fa-play"></i>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* 弹窗底部 */}
+                <div className="px-6 py-4 border-t border-border-light flex justify-end">
+                  <button 
+                    onClick={handleCloseBgmModal}
+                    className="px-4 py-2 border border-border-light rounded-lg text-text-secondary hover:bg-gray-50 transition-colors"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
@@ -379,4 +438,19 @@ const StaticCreateStep4: React.FC = () => {
 };
 
 export default StaticCreateStep4;
+
+
+// 音乐选项数据
+const musicOptions: MusicOption[] = [
+  { id: 'bgm-001', name: '轻松愉快 - 青春校园', duration: '2:30', url: 'https://s.coze.cn/music/bgm-001.mp3' },
+  { id: 'bgm-002', name: '神秘悬疑 - 魔法世界', duration: '3:15', url: 'https://s.coze.cn/music/bgm-002.mp3' },
+  { id: 'bgm-003', name: '温馨治愈 - 日常故事', duration: '2:45', url: 'https://s.coze.cn/music/bgm-003.mp3' },
+  { id: 'bgm-004', name: '紧张刺激 - 冒险动作', duration: '3:00', url: 'https://s.coze.cn/music/bgm-004.mp3' },
+  { id: 'bgm-005', name: '浪漫唯美 - 爱情故事', duration: '2:50', url: 'https://s.coze.cn/music/bgm-005.mp3' }
+];
+
+
+// 添加模态弹窗状态
+// ...
+// ...
 
