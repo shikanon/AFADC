@@ -25,6 +25,17 @@ export interface LoginParams {
   password: string;
 }
 
+// 注册响应接口（与登录响应相同）
+export type RegisterResponse = LoginResponse;
+
+// 注册请求参数
+export interface RegisterParams {
+  email: string;
+  password: string;
+  organization_name: string;
+  display_name?: string;
+}
+
 /**
  * 用户登录
  * @param params 登录参数
@@ -47,6 +58,22 @@ export const login = async (params: LoginParams): Promise<LoginResponse> => {
 export const logout = (): void => {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_info');
+};
+
+/**
+ * 用户注册
+ * 创建新的组织和管理员账号
+ * @param params 注册参数
+ * @returns 注册响应，包含token和用户信息
+ */
+export const register = async (params: RegisterParams): Promise<RegisterResponse> => {
+  try {
+    return await apiClient.post<RegisterResponse>('/api/auth/register', params);
+  } catch (error) {
+    // 可以在这里添加额外的错误处理逻辑
+    console.error('Register failed:', error);
+    throw error;
+  }
 };
 
 /**

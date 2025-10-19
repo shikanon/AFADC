@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { register, saveAuthState, RegisterParams } from '../../services/api/auth';
 import styles from './styles.module.css';
 
 interface FormData {
@@ -194,26 +195,44 @@ export default function RegisterPage() {
   };
 
   // 处理表单提交
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 验证所有字段
     const isEmailValid = validateInput('email', formData.email, validateEmail, '请输入有效的邮箱地址');
-    const isUsernameValid = validateInput('username', formData.username, validateUsername, '用户名至少需要3个字符');
     const isOrganizationValid = validateInput('organization', formData.organization, validateOrganization, '组织名称至少需要2个字符');
-    const isVerifyCodeValid = validateInput('verifyCode', formData.verifyCode, validateVerifyCode, '验证码至少需要4个字符');
     const isPasswordValid = validateInput('password', formData.password, validatePassword, '密码至少需要6个字符');
     const isConfirmPasswordValid = validateInput('confirmPassword', formData.confirmPassword, validateConfirmPassword, '两次输入的密码不一致');
 
-    if (isEmailValid && isUsernameValid && isOrganizationValid && isVerifyCodeValid && isPasswordValid && isConfirmPasswordValid) {
+    // 注意：根据API要求，我们不需要用户名和验证码字段
+    if (isEmailValid && isOrganizationValid && isPasswordValid && isConfirmPasswordValid) {
       // 显示加载状态
       setIsLoading(true);
 
-      // 模拟注册请求
-      setTimeout(() => {
-        // 注册成功，跳转到登录页
-        navigate('/login');
-      }, 1500);
+      try {
+        // 构建注册参数
+        const registerParams: RegisterParams = {
+          email: formData.email,
+          password: formData.password,
+          organization_name: formData.organization,
+          // 使用username作为display_name，如果有输入的话
+          display_name: formData.username || formData.email.split('@')[0]
+        };
+
+        // 调用注册接口
+        const response = await register(registerParams);
+
+        // 保存登录状态
+        saveAuthState(response.token, response.user);
+
+        // 注册成功后跳转到主页或其他页面
+        navigate('/');
+      } catch (error) {
+        console.error('注册失败:', error);
+        // 错误处理已经在API客户端中完成
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
