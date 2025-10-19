@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { message } from '../../components/Common/Message';
 import styles from './styles.module.css';
+import { login } from '../../services/api';
+import { useUser } from '../../contexts';
 
 interface FormData {
   username: string;
@@ -103,8 +106,11 @@ export default function LoginPage() {
     setShowPassword(!showPassword);
   };
 
+  // 使用用户状态管理
+  const { login: contextLogin } = useUser();
+
   // 处理表单提交
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 验证所有字段
@@ -115,11 +121,28 @@ export default function LoginPage() {
       // 显示加载状态
       setIsLoading(true);
 
-      // 模拟登录请求
-      setTimeout(() => {
-        // 登录成功，跳转到项目管理页
+      try {
+        // 调用登录API
+        const response = await login({
+          username: formData.username,
+          password: formData.password
+        });
+        
+        // 保存登录状态
+        contextLogin(response.token, response.user);
+        
+        // 显示成功消息
+        message.success('登录成功');
+        
+        // 跳转到项目管理页
         navigate('/project-manage');
-      }, 1500);
+      } catch (error) {
+        // 处理登录失败
+        message.error('登录失败，请检查用户名和密码');
+      } finally {
+        // 隐藏加载状态
+        setIsLoading(false);
+      }
     }
   };
 

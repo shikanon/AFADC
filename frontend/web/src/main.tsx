@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import App from './App';
 import './index.css';
+import { MessageContainer } from './components/Common/Message';
 
 window.onerror = function(message, source, lineno, colno, error) {
   console.log('全局 onerror 捕获到错误:', {
@@ -45,5 +46,6 @@ window.addEventListener('unhandledrejection', function(event) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
+    <MessageContainer />
   </StrictMode>,
 );
