@@ -147,34 +147,60 @@ commit_changes() {
         error_exit "当前不在临时分支，无法提交"
     fi
     
-    if git diff-index --quiet HEAD --; then
-        warning "当前分支没有任何修改，无需提交"
-        read -p "是否删除此空分支并返回主分支? (y/n): " confirm
+    # 检查临时分支是否有变更
+    if git diff --quiet && git diff --cached --quiet; then
+        warning "临时分支「$current_branch」没有任何变更（包括暂存区），谨慎操作"
+        read -p "是否删除分支并返回主分支? (y/n): " confirm
         if [ "$confirm" = "y" ]; then
             git checkout "$BASE_BRANCH"
             git branch -D "$current_branch"
             success "已删除空分支并返回主分支"
-            log "已删除空临时分支: $current_branch"
+            log "删除空临时分支: $current_branch"
         else
-            log "用户选择保留空临时分支: $current_branch"
+            log "保留空临时分支: $current_branch"
         fi
         exit 0
     fi
     
-    read -p "请输入提交信息: " commit_msg
+    # 步骤1：确保临时分支的所有变更已提交（允许用户有多次自主提交）
+    if ! git diff-index --quiet HEAD --; then
+        echo "检测到临时分支有未提交的变更，需要先提交"
+        read -p "请输入本次提交信息（用于临时分支）: " temp_commit_msg
+        git add -A
+        git commit -m "[$current_branch] $temp_commit_msg" || error_exit "临时分支提交失败"
+        log "临时分支提交: $current_branch，信息: $temp_commit_msg"
+    fi
     
-    git add -A
-    git commit -m "$commit_msg" || error_exit "提交失败"
-    log "在临时分支提交修改: $current_branch, 提交信息: $commit_msg"
-    
+    # 步骤2：同步主分支最新状态到临时分支
+    info "开始同步主分支「$BASE_BRANCH」的最新状态到临时分支..."
     git checkout "$BASE_BRANCH" || error_exit "切换到主分支失败"
-    git merge --no-ff "$current_branch" -m "Merge branch '$current_branch': $commit_msg" || error_exit "合并失败"
-    log "已将临时分支 $current_branch 合并到主分支 $BASE_BRANCH"
+    # 用户无需push，这里仅确保基于本地主分支最新状态同步
+    git checkout "$current_branch" || error_exit "切换回临时分支失败"
+    git merge "$BASE_BRANCH" -m "Merge base branch '$BASE_BRANCH' into '$current_branch'"
     
+    # 处理合并冲突
+    if [ $? -ne 0 ]; then
+        warning "合并主分支时发现冲突！请手动解决冲突后执行以下命令："
+        echo "  1. 解决冲突后：git add <冲突文件>"
+        echo "  2. 完成合并：git commit -m '解决主分支合并冲突'"
+        echo "  3. 再次运行本脚本选择「提交修改」完成合并"
+        log "临时分支 $current_branch 与主分支 $BASE_BRANCH 合并冲突，需手动解决"
+        exit 1
+    fi
+    log "已将主分支 $BASE_BRANCH 最新状态同步到临时分支 $current_branch"
+    
+    # 步骤3：将临时分支合并到主分支
+    read -p "请输入合并到主分支的提交信息: " final_commit_msg
+    git checkout "$BASE_BRANCH" || error_exit "切换到主分支失败"
+    git merge --no-ff "$current_branch" -m "$final_commit_msg" || error_exit "合并到主分支失败"
+    log "将临时分支 $current_branch 合并到主分支 $BASE_BRANCH，信息: $final_commit_msg"
+    
+    # 步骤4：删除临时分支
     git branch -d "$current_branch" || error_exit "删除临时分支失败"
     log "已删除临时分支: $current_branch"
     
-    success "已成功提交修改并返回主分支"
+    success "所有修改已成功合并到主分支「$BASE_BRANCH」"
+    echo "提示: 主分支当前包含临时分支的所有变更（包括你的自主提交）"
     exit 0
 }
 

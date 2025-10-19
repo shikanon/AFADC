@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
 import P_login from '../pages/p-login';
+import P_register from '../pages/p-register';
 import P_project_manage from '../pages/p-project_manage';
 import P_asset_manage from '../pages/p-asset_manage';
 import P_asset_generate from '../pages/p-asset_generate';
@@ -58,6 +59,15 @@ const router = createBrowserRouter([
     element: (
       <ErrorBoundary>
         <P_login />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/register',
+    element: (
+      <ErrorBoundary>
+        <P_register />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
