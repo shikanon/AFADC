@@ -5,6 +5,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import P_login from '../pages/p-login';
 import P_project_manage from '../pages/p-project_manage';
 import P_asset_manage from '../pages/p-asset_manage';
+import P_asset_generate from '../pages/p-asset_generate';
 import P_user_manage from '../pages/p-user_manage';
 import P_plan_manage from '../pages/p-plan_manage';
 import P_api_key_setting from '../pages/p-api_key_setting';
@@ -75,6 +76,15 @@ const router = createBrowserRouter([
     element: (
       <ErrorBoundary>
         <P_asset_manage />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/asset-generate',
+    element: (
+      <ErrorBoundary>
+        <P_asset_generate />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,

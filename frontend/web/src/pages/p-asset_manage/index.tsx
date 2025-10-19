@@ -291,7 +291,8 @@ const AssetManagePage: React.FC = () => {
       {/* 使用Sidebar组件替换重复的侧边栏代码 */}
       <Sidebar 
         isCollapsed={isSidebarCollapsed} 
-        activeMenu="asset-manage"
+        activeMenu="asset-list"
+        currentPath={window.location.pathname}
       />
 
       {/* 主内容区 */}
@@ -301,18 +302,27 @@ const AssetManagePage: React.FC = () => {
         <div className="p-6">
           {/* 使用PageHeader组件替换重复的页面头部代码 */}
           <PageHeader 
-            title="资产管理"
+            title="资产管理列表"
             breadcrumbs={[
               { label: '首页' },
-              { label: '资产管理' }
+              { label: '资产管理列表' }
             ]}
             actions={
-              <button 
-                onClick={() => setIsUploadModalVisible(true)}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                <i className="fas fa-upload mr-2"></i>上传资产
-              </button>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => setIsUploadModalVisible(true)}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <i className="fas fa-upload mr-2"></i>上传资产
+                </button>
+                <Link to="/asset-generate">
+                  <button 
+                    className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    <i className="fas fa-magic mr-2"></i>AI生成资产
+                  </button>
+                </Link>
+              </div>
             }
           />
 
@@ -349,20 +359,15 @@ const AssetManagePage: React.FC = () => {
 
           {/* 工具栏 - 使用SearchToolbar组件 */}
           <SearchToolbar 
-            searchValue={assetSearchTerm}
-            onSearchChange={(e) => setAssetSearchTerm(e.target.value)}
+            searchTerm={assetSearchTerm}
+            onSearchChange={(value) => setAssetSearchTerm(value)}
             searchPlaceholder="搜索资产名称、标签..."
-            filters={[
-              {
-                label: '子类型',
-                value: subtypeFilter,
-                onChange: (e) => setSubtypeFilter(e.target.value),
-                options: getSubtypeOptions(activeTab).map(option => ({
-                  value: option.value,
-                  label: option.text
-                }))
-              }
-            ]}
+            filterOptions={getSubtypeOptions(activeTab).map(option => ({
+              value: option.value,
+              label: option.text
+            }))}
+            filterValue={subtypeFilter}
+            onFilterChange={(value) => setSubtypeFilter(value)}
             actions={
               selectedAssets.size > 0 ? (
                 <button 

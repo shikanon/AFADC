@@ -1,0 +1,139 @@
+/* AI资产生成页面样式 */
+.pageWrapper {
+  background-color: #F8FAFC;
+  color: #1F2937;
+}
+
+.mainContentExpanded {
+  margin-left: 240px;
+}
+
+.mainContentCollapsed {
+  margin-left: 56px;
+}
+
+/* 卡片样式 */
+.card {
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* 标签样式 */
+.tagActive {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.tagInactive {
+  background-color: #F1F5F9;
+  color: #6B7280;
+}
+
+.tagInactive:hover {
+  background-color: #E2E8F0;
+  color: #374151;
+}
+
+/* 输入框样式 */
+.textArea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* 加载中样式 */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #6B7280;
+}
+
+.loadingSpinner {
+  border: 3px solid #F1F5F9;
+  border-top: 3px solid #3B82F6;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 预览图样式 */
+.previewContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  background-color: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 8px;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* 按钮组样式 */
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+}
+
+/* 参考图上传区域 */
+.uploadArea {
+  border: 2px dashed #CBD5E1;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.uploadArea:hover {
+  border-color: #3B82F6;
+  background-color: #F0F9FF;
+}
+
+.uploadAreaActive {
+  border-color: #3B82F6;
+  background-color: #F0F9FF;
+}
+
+/* 历史记录样式 */
+.historyItem {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.historyItem:hover {
+  background-color: #F8FAFC;
+}
+
+.historyItemActive {
+  background-color: #EFF6FF;
+  border-left: 3px solid #3B82F6;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .mainContentExpanded,
+  .mainContentCollapsed {
+    margin-left: 0;
+  }
+  
+  .buttonGroup {
+    flex-direction: column;
+  }
+}
