@@ -246,6 +246,7 @@ Thumbs.db
 # Logs
 logs
 *.log
+plan.md
 
 # Runtime data
 pids
