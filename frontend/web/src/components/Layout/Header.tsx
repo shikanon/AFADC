@@ -3,6 +3,8 @@ import React from 'react';
 interface HeaderProps {
   /** 侧边栏切换回调函数 */
   onSidebarToggle: () => void;
+  /** 侧边栏折叠状态 */
+  isSidebarCollapsed: boolean;
   /** 搜索框占位符文本 */
   searchPlaceholder?: string;
   /** 用户信息 */
@@ -19,6 +21,7 @@ interface HeaderProps {
  */
 const Header: React.FC<HeaderProps> = ({ 
   onSidebarToggle, 
+  isSidebarCollapsed,
   searchPlaceholder = "搜索项目、资产...",
   userInfo = {
     avatar: "https://s.coze.cn/image/Kaylvq1U0II/",
@@ -33,9 +36,9 @@ const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={onSidebarToggle}
             className="p-2 rounded-lg hover:bg-bg-secondary transition-colors"
-            aria-label="切换侧边栏"
+            aria-label={isSidebarCollapsed ? "打开侧边栏" : "收起侧边栏"}
           >
-            <i className="fas fa-bars text-text-secondary"></i>
+            <i className={`fas ${isSidebarCollapsed ? 'fa-bars' : 'fa-times'} text-text-secondary`}></i>
           </button>
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
