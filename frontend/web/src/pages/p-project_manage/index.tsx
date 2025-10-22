@@ -6,6 +6,7 @@ import styles from './styles.module.css';
 import { Header, Sidebar, PageHeader } from '../../components/Layout';
 import { SearchToolbar, ConfirmDialog } from '../../components/Common';
 import * as api from '../../services/api';
+import StaticCreateDialog, { FormData as StaticFormData } from './StaticCreateDialog';
 
 // 使用API定义的项目类型，并进行适配
 import type { Project as ApiProject, GetProjectsParams } from '../../services/api/project';
@@ -96,7 +97,7 @@ function ProjectManagePage() {
     return {
       id: String(apiProject.id),
       name: apiProject.name,
-      type: apiProject.project_type || 'static',
+      type: apiProject.project_type || 'static_comic',
       status: apiProject.status,
       creator: apiProject.created_by?.display_name || apiProject.created_by?.username || '未知用户',
       createTime: apiProject.created_at,
@@ -276,7 +277,7 @@ function ProjectManagePage() {
   // 项目操作处理
   const handleProjectAction = (project: Project, action: string): void => {
     const { id, type } = project;
-    const path = type === 'static' ? '/static-create-step1' : '/dynamic-create-step1';
+    const path = type === 'static_comic' ? '/static-create-step1' : '/dynamic-create-step1';
     
     switch (action) {
       case 'edit':
@@ -291,10 +292,47 @@ function ProjectManagePage() {
     }
   };
 
+  // 静态漫创建弹窗状态
+  var isStaticDialogVisibleState = useState<boolean>(false);
+  var isStaticDialogVisible = isStaticDialogVisibleState[0];
+  var setIsStaticDialogVisible = isStaticDialogVisibleState[1];
+  
   // 新建项目
-  const handleCreateProject = (type: 'static' | 'dynamic'): void => {
-    const path = type === 'static' ? '/static-create-step1' : '/dynamic-create-step1';
-    navigate(path);
+  const handleCreateProject = (type: 'static_comic' | 'dynamic_comic'): void => {
+    if (type === 'static_comic') {
+      // 打开静态漫创建弹窗
+      setIsStaticDialogVisible(true);
+    } else {
+      // 动态漫仍使用原来的导航逻辑
+      navigate('/dynamic-create-step1');
+    }
+  };
+  
+  // 处理静态漫表单提交
+  const handleStaticFormSubmit = (formData: StaticFormData) => {
+    // 生成项目ID
+    const generateProjectId = (): string => {
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1000);
+      return `PROJ-${timestamp}-${random}`;
+    };
+    
+    const projectId = generateProjectId();
+    const projectData = {
+      projectId,
+      ...formData,
+      step: 1,
+      type: 'static_comic'
+    };
+    
+    // 保存到localStorage并导航到下一步
+    localStorage.setItem('currentProject', JSON.stringify(projectData));
+    navigate(`/static-create-step2?projectId=${projectId}`);
+  };
+  
+  // 关闭静态漫创建弹窗
+  const handleStaticDialogClose = () => {
+    setIsStaticDialogVisible(false);
   };
 
   // 分页处理
@@ -330,7 +368,7 @@ function ProjectManagePage() {
   // 获取类型徽章样式
   const getTypeBadgeClass = (type: string): string => {
     const baseClass = styles.typeBadge;
-    return type === 'static' ? `${baseClass} ${styles.typeStatic}` : `${baseClass} ${styles.typeDynamic}`;
+    return type === 'static_comic' ? `${baseClass} ${styles.typeStatic}` : `${baseClass} ${styles.typeDynamic}`;
   };
 
   // 获取状态文本
@@ -346,7 +384,7 @@ function ProjectManagePage() {
 
   // 获取类型文本
   const getTypeText = (type: string): string => {
-    return type === 'static' ? '静态漫' : '动态漫';
+    return type === 'static_comic' ? '静态漫' : '动态漫';
   };
 
   return (
@@ -379,13 +417,13 @@ function ProjectManagePage() {
             actions={
               <div className="flex items-center space-x-3">
                 <button 
-                  onClick={() => handleCreateProject('static')}
+                  onClick={() => handleCreateProject('static_comic')}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
                   新建静态漫
                 </button>
                 <button 
-                  onClick={() => handleCreateProject('dynamic')}
+                  onClick={() => handleCreateProject('dynamic_comic')}
                   className="px-4 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors"
                 >
                   新建动态漫
@@ -609,11 +647,16 @@ function ProjectManagePage() {
           )}
         </div>
       </main>
-
-
+      
+      {/* 静态漫创建弹窗 */}
+      <StaticCreateDialog 
+        isOpen={isStaticDialogVisible}
+        onClose={handleStaticDialogClose}
+        onConfirm={handleStaticFormSubmit}
+      />
     </div>
   );
-};
+}
 
 export default ProjectManagePage;
 

@@ -10,7 +10,7 @@
     {
       "id": 1,
       "username": "org1_admin",
-      "display_name": "老三",
+      "display_name": "张三",
       "email": "shikanon@tensorbytes.com",
       "phone": null,
       "role": "admin",
@@ -39,8 +39,8 @@
       "project_type": "static_comic",
       "status": "draft",
       "description": "项目描述",
-      "prompt": "",
-      "cover_image": "http://localhost:8000/assets/project_cover.png",
+      "prompt": "创作一部温馨治愈的静态漫画,画风清新简洁,色调以柔和的暖色为主",
+      "cover_image": "https://s.coze.cn/t/L9i8irRAxAw/",
       "video_scale": "16:9",
       "video_resolution": "1080p",
       "organization_id": 1,
@@ -51,10 +51,24 @@
       "id": 2,
       "name": "动态漫演示项目",
       "project_type": "dynamic_comic",
-      "status": "in_progress",
+      "status": "progress",
       "description": "用于展示动态章节和分镜的示例。",
-      "prompt": "",
-      "cover_image": "http://localhost:8000/assets/project_cover.png",
+      "prompt": "创作一部充满科幻感和冒险精神的动态漫画,风格采用赛博朋克和太空歌剧融合,色调以深蓝、紫色和金色为主,人物设计需要有鲜明的个性特征",
+      "cover_image": "https://s.coze.cn/t/FnkONWFn8cc",
+      "video_scale": "16:9",
+      "video_resolution": "4K",
+      "organization_id": 1,
+      "created_by_id": 2,
+      "created_at": "2024-03-15T09:30:00Z"
+    },
+    {
+      "id": 3,
+      "name": "魔法学院",
+      "project_type": "static_comic",
+      "status": "progress",
+      "description": "魔法学院的奇幻冒险故事。",
+      "prompt": "创作一部充满科幻感和冒险精神的动态漫画,风格采用赛博朋克和太空歌剧融合,色调以深蓝、紫色和金色为主,人物设计需要有鲜明的个性特征",
+      "cover_image": "https://s.coze.cn/t/FnkONWFn8cc",
       "video_scale": "16:9",
       "video_resolution": "4K",
       "organization_id": 1,
@@ -88,7 +102,7 @@
       "order_index": 0,
       "dialogue": "欢迎来到故事世界。",
       "scene_description": "静态漫项目的第一张画面。",
-      "image_url": "https://cdn.example.com/storyboards/static-1.png",
+      "image_url": "https://s.coze.cn/t/W5yRxy57L5A/",
       "created_at": "2024-01-01T00:05:00Z"
     },
     {
@@ -98,8 +112,28 @@
       "order_index": 0,
       "dialogue": "我们得尽快行动。",
       "scene_description": "夜晚街道的神秘氛围。",
-      "image_url": "https://cdn.example.com/storyboards/dynamic-1.png",
+      "image_url": "https://s.coze.cn/t/TasDoxySgaM/",
       "created_at": "2024-03-15T09:36:00Z"
+    }
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "project_id": 1,
+      "name": "黎明街景",
+      "description": "静态漫项目的首个场景,展现东方初升的暖色光线。",
+      "prompt": "生成一幅黎明时分的城市街景,氛围温暖且充满希望",
+      "image_url": "https://s.coze.cn/t/GAy3o2AYGps/",
+      "created_at": "2024-01-01T00:10:00Z"
+    },
+    {
+      "id": 2,
+      "project_id": 2,
+      "name": "雨夜追逐",
+      "description": "动态漫章节中的高潮场景,主角与反派在雨夜街头交锋。",
+      "prompt": "描绘主角在雨夜追逐反派的动态镜头,强调动感与紧张氛围",
+      "image_url": "https://s.coze.cn/t/u2rYKPjKGdY/",
+      "created_at": "2024-03-15T09:45:00Z"
     }
   ],
   "characters": [
@@ -108,10 +142,19 @@
       "project_id": 1,
       "display_name": "李白",
       "description": "主角,诗人",
+      "prompt": "古代文人,身穿白色长袍,手持折扇,气质儒雅,面容清秀,长发飘逸,眼神深邃",
       "portraits": [
         {
-          "src": "https://example.com/portrait1.jpg",
-          "alt": "正面照"
+          "src": "https://s.coze.cn/t/qkzgvCwo4S0/",
+          "alt": "正面"
+        },
+        {
+          "src": "https://s.coze.cn/t/bpuEHB055Bc/",
+          "alt": "侧面"
+        },
+        {
+          "src": "https://s.coze.cn/t/DTLwfbzyAX4/",
+          "alt": "45度侧面"
         }
       ],
       "voice_preset": "zh_male_libai_voice",
@@ -134,7 +177,7 @@
         "角色",
         "李白"
       ],
-      "file_url": "https://example.com/asset1.jpg",
+      "file_url": "https://s.coze.cn/t/DqerUXNTQB8/",
       "object_key": "1/abc123.jpg",
       "uploaded_by_id": 1,
       "created_at": "2024-01-01T00:00:00Z"
@@ -152,7 +195,7 @@
       },
       "progress": 100,
       "result": {
-        "image_url": "https://example.com/generated.jpg",
+        "image_url": "https://s.coze.cn/t/QowWGvpnBjI",
         "asset_id": 1
       },
       "error_message": null,
@@ -257,7 +300,7 @@
   "storage_objects": [
     {
       "object_key": "1/abc123.jpg",
-      "url": "https://your-oss-domain.com/1/abc123.jpg",
+      "url": "https://s.coze.cn/t/hC3pJYdZDWk/",
       "organization_id": 1
     },
     {
