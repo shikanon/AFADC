@@ -1,7 +1,7 @@
 
 
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { Header, Sidebar, PageHeader } from '../../components/Layout';
 import { SearchToolbar, ConfirmDialog } from '../../components/Common';
@@ -100,7 +100,7 @@ function ProjectManagePage() {
       status: apiProject.status,
       creator: apiProject.created_by?.display_name || apiProject.created_by?.username || '未知用户',
       createTime: apiProject.created_at,
-      thumbnail: apiProject.basic_info_json?.cover_image || '',
+      thumbnail: apiProject.cover_image || '', // 直接使用cover_image字段，不再从basic_info_json中获取
       projectId: `PROJ-${String(apiProject.id).padStart(3, '0')}`
     };
   };
@@ -120,14 +120,14 @@ function ProjectManagePage() {
       // 由于可能存在API调用问题，先添加错误捕获并保留兜底数据
       const response = await api.getProjects(params);
       
-      // 检查响应格式
-      if (response && response.data && Array.isArray(response.data)) {
-        const convertedProjects = response.data.map(convertApiProjectToPageProject);
+      // 检查响应格式 - API现在直接返回项目数组
+      if (Array.isArray(response)) {
+        const convertedProjects = response.map(convertApiProjectToPageProject);
         setProjects(convertedProjects);
-        setTotalProjects(response.total || convertedProjects.length);
+        setTotalProjects(convertedProjects.length); // 直接使用数组长度作为总数
       } else {
         // API响应格式不正确，使用空数组
-        console.warn('API返回格式不正确');
+        console.warn('API返回格式不正确，预期为数组');
         setProjects([]);
         setTotalProjects(0);
       }
@@ -142,11 +142,9 @@ function ProjectManagePage() {
     }
   };
   
-  // 替代登录状态检查和导航
+  // 使用react-router-dom的useNavigate hook实现导航
   var isLoggedIn: boolean = true;
-  var navigate = function(path: string): void {
-    console.log('Navigate to:', path);
-  };
+  const navigate = useNavigate();
   
   // 未使用的过滤变量，避免编译警告
   var typeFilter: string = '';

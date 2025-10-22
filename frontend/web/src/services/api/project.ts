@@ -5,13 +5,12 @@ export interface ProjectCreator {
   id: number;
   username: string;
   display_name: string;
-}
-
-// 项目基础信息接口
-export interface ProjectBasicInfo {
-  title: string;
-  description: string;
-  cover_image?: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  organization_id: number;
+  is_active: boolean;
+  created_at: string;
 }
 
 // 项目接口
@@ -20,12 +19,15 @@ export interface Project {
   name: string;
   project_type: string;
   status: string;
-  basic_info_json: ProjectBasicInfo;
+  description: string;
+  prompt: string;
+  cover_image: string;
+  video_scale: string;
+  video_resolution: string;
   organization_id: number;
   created_by_id: number;
-  created_by: ProjectCreator;
   created_at: string;
-  chapters: any[];
+  created_by: ProjectCreator;
 }
 
 // 获取项目列表参数接口
@@ -40,14 +42,31 @@ export interface GetProjectsParams {
  * @param params 查询参数，包含页码、每页数量和搜索关键词
  * @returns 项目列表数据
  */
-export const getProjects = (params: GetProjectsParams = {}) => {
+export const getProjects = async (params: GetProjectsParams = {}) => {
   // 设置默认参数
   const defaultParams = {
     page: 1,
-    size: 20,
+    size: 10, // 与curl命令中的size保持一致
     ...params
   };
   
-  // 调用API获取项目列表
-  return apiClient.get('/api/projects', { params: defaultParams });
+  // 打印请求日志
+  console.log('请求项目列表:', {
+    url: '/api/projects',
+    params: defaultParams
+  });
+  
+  try {
+    // 调用API获取项目列表
+    const response = await apiClient.get<Project[]>('/api/projects', { params: defaultParams });
+    
+    // 打印响应日志
+    console.log('项目列表请求成功，返回数据条数:', response.length);
+    
+    return response;
+  } catch (error) {
+    // 打印错误日志
+    console.error('获取项目列表失败:', error);
+    throw error;
+  }
 };
