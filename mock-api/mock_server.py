@@ -94,6 +94,9 @@ class MockDatabase:
         self.storyboards: Dict[int, Dict[str, Any]] = {
             storyboard["id"]: storyboard for storyboard in raw.get("storyboards", [])
         }
+        self.scenes: Dict[int, Dict[str, Any]] = {
+            scene["id"]: scene for scene in raw.get("scenes", [])
+        }
         self.characters: Dict[int, Dict[str, Any]] = {
             character["id"]: character for character in raw.get("characters", [])
         }
@@ -126,6 +129,7 @@ class MockDatabase:
             ("projects", self.projects),
             ("chapters", self.chapters),
             ("storyboards", self.storyboards),
+            ("scenes", self.scenes),
             ("characters", self.characters),
             ("assets", self.assets),
             ("tasks", self.tasks),
@@ -145,6 +149,7 @@ class MockDatabase:
             "projects": list(self.projects.values()),
             "chapters": list(self.chapters.values()),
             "storyboards": list(self.storyboards.values()),
+            "scenes": list(self.scenes.values()),
             "characters": list(self.characters.values()),
             "assets": list(self.assets.values()),
             "tasks": list(self.tasks.values()),
@@ -193,6 +198,9 @@ class MockDatabase:
             for storyboard in self.storyboards.values()
             if storyboard["project_id"] == project_id and storyboard.get("chapter_id") == chapter_id
         ]
+
+    def list_scenes_for_project(self, project_id: int) -> List[Dict[str, Any]]:
+        return [scene for scene in self.scenes.values() if scene["project_id"] == project_id]
 
     def list_characters_for_project(self, project_id: int) -> List[Dict[str, Any]]:
         return [character for character in self.characters.values() if character["project_id"] == project_id]
@@ -469,8 +477,6 @@ def create_app() -> FastAPI:
         token = auth_header.split(" ", 1)[1].strip()
         user_id = store.tokens.get(token)
         if not user_id:
-            # Debug: print available tokens
-            print(f"[DEBUG] Token '{token}' not found. Available tokens: {list(store.tokens.keys())}")
             raise HTTPException(status_code=401, detail="Invalid token")
         user = store.users.get(user_id)
         if not user or not user.get("is_active", True):
@@ -746,9 +752,35 @@ def create_app() -> FastAPI:
         ]
         for character_id in character_ids:
             del store.characters[character_id]
+        scene_ids = [
+            scene_id
+            for scene_id, scene in store.scenes.items()
+            if scene["project_id"] == project["id"]
+        ]
+        for scene_id in scene_ids:
+            del store.scenes[scene_id]
         del store.projects[project_id]
         store._dump()
         return Response(status_code=204)
+
+    @app.get("/api/projects/{project_id}/scenes")
+    async def list_scenes_endpoint(
+        project_id: int,
+        current_user: Dict[str, Any] = Depends(get_current_user),
+    ):
+        ensure_project_access(project_id, current_user)
+        scenes = sorted(
+            store.list_scenes_for_project(project_id),
+            key=lambda item: item.get("created_at") or "",
+        )
+        serialized = []
+        for scene in scenes:
+            scene_data = dict(scene)
+            creator = store.users.get(scene_data.get("generated_by"))
+            if creator:
+                scene_data["created_by"] = store.public_user(creator)
+            serialized.append(scene_data)
+        return serialized
 
     # Chapter management -------------------------------------------------------------
 
