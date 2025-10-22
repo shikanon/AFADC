@@ -1,0 +1,273 @@
+{
+  "organizations": [
+    {
+      "id": 1,
+      "name": "我的公司",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "org1_admin",
+      "display_name": "老三",
+      "email": "shikanon@tensorbytes.com",
+      "phone": null,
+      "role": "admin",
+      "organization_id": 1,
+      "is_active": true,
+      "password": "123456",
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "username": "editor_user",
+      "display_name": "李四",
+      "email": "editor@example.com",
+      "phone": "13800138000",
+      "role": "editor",
+      "organization_id": 1,
+      "is_active": true,
+      "password": "123456",
+      "created_at": "2024-01-02T09:00:00Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "name": "测试项目",
+      "project_type": "static_comic",
+      "status": "draft",
+      "description": "项目描述",
+      "prompt": "",
+      "cover_image": "http://localhost:8000/assets/project_cover.png",
+      "video_scale": "16:9",
+      "video_resolution": "1080p",
+      "organization_id": 1,
+      "created_by_id": 1,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "动态漫演示项目",
+      "project_type": "dynamic_comic",
+      "status": "in_progress",
+      "description": "用于展示动态章节和分镜的示例。",
+      "prompt": "",
+      "cover_image": "http://localhost:8000/assets/project_cover.png",
+      "video_scale": "16:9",
+      "video_resolution": "4K",
+      "organization_id": 1,
+      "created_by_id": 2,
+      "created_at": "2024-03-15T09:30:00Z"
+    }
+  ],
+  "chapters": [
+    {
+      "id": 1,
+      "project_id": 2,
+      "name": "第一章 开端",
+      "script_content": "主人公发现了一枚神秘徽章。",
+      "order_index": 0,
+      "created_at": "2024-03-15T09:35:00Z"
+    },
+    {
+      "id": 2,
+      "project_id": 2,
+      "name": "第二章 转折",
+      "script_content": "反派现身,局势逆转。",
+      "order_index": 1,
+      "created_at": "2024-03-15T10:10:00Z"
+    }
+  ],
+  "storyboards": [
+    {
+      "id": 1,
+      "project_id": 1,
+      "chapter_id": null,
+      "order_index": 0,
+      "dialogue": "欢迎来到故事世界。",
+      "scene_description": "静态漫项目的第一张画面。",
+      "image_url": "https://cdn.example.com/storyboards/static-1.png",
+      "created_at": "2024-01-01T00:05:00Z"
+    },
+    {
+      "id": 2,
+      "project_id": 2,
+      "chapter_id": 1,
+      "order_index": 0,
+      "dialogue": "我们得尽快行动。",
+      "scene_description": "夜晚街道的神秘氛围。",
+      "image_url": "https://cdn.example.com/storyboards/dynamic-1.png",
+      "created_at": "2024-03-15T09:36:00Z"
+    }
+  ],
+  "characters": [
+    {
+      "id": 1,
+      "project_id": 1,
+      "display_name": "李白",
+      "description": "主角,诗人",
+      "portraits": [
+        {
+          "src": "https://example.com/portrait1.jpg",
+          "alt": "正面照"
+        }
+      ],
+      "voice_preset": "zh_male_libai_voice",
+      "voice_speed": 1.0,
+      "voice_script": "床前明月光,疑是地上霜",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "assets": [
+    {
+      "id": 1,
+      "organization_id": 1,
+      "name": "角色立绘_李白",
+      "description": "李白角色正面立绘",
+      "asset_type": "IMAGE",
+      "sub_type": "character_ip",
+      "creation_method": "GENERATED",
+      "tags": [
+        "角色",
+        "李白"
+      ],
+      "file_url": "https://example.com/asset1.jpg",
+      "object_key": "1/abc123.jpg",
+      "uploaded_by_id": 1,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "organization_id": 1,
+      "task_type": "text_to_image",
+      "status": "completed",
+      "payload": {
+        "prompt": "一个美丽的风景",
+        "size": "2K"
+      },
+      "progress": 100,
+      "result": {
+        "image_url": "https://example.com/generated.jpg",
+        "asset_id": 1
+      },
+      "error_message": null,
+      "retry_token": null,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "organization_id": 1,
+      "title": "任务完成",
+      "message": "文生图任务已完成",
+      "type": "info",
+      "is_read": false,
+      "created_at": "2024-01-01T00:10:00Z"
+    }
+  ],
+  "plans": [
+    {
+      "id": 1,
+      "name": "基础套餐",
+      "description": "适合个人创作者",
+      "features": "[\"100分镜/月\", \"10GB存储\"]",
+      "price": 9900,
+      "duration_days": 30,
+      "plan_type": "basic",
+      "max_storyboards": 100,
+      "storage_gb": 10,
+      "is_active": 1,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "专业套餐",
+      "description": "适合专业团队",
+      "features": "[\"无限分镜\", \"100GB存储\", \"优先支持\"]",
+      "price": 29900,
+      "duration_days": 30,
+      "plan_type": "pro",
+      "max_storyboards": null,
+      "storage_gb": 100,
+      "is_active": 1,
+      "created_at": "2024-01-10T00:00:00Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": 1,
+      "organization_id": 1,
+      "plan_id": 1,
+      "status": "active",
+      "created_at": "2024-01-05T00:00:00Z"
+    }
+  ],
+  "payments": [
+    {
+      "order_id": "ORDER_ABC123DEF456",
+      "organization_id": 1,
+      "plan_type": "basic",
+      "amount": 9900,
+      "status": "pending",
+      "created_at": "2024-01-05T10:00:00Z"
+    }
+  ],
+  "api_keys": [
+    {
+      "id": 1,
+      "organization_id": 1,
+      "name": "Seedream API Key",
+      "value": "sk-abc123xyz",
+      "masked_value": "sk-****xyz",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "voices": [
+    {
+      "name": "zh_female_xiaoxiao",
+      "voice_type": "standard",
+      "locale": "中文",
+      "description": "标准女声,适用于旁白",
+      "scene_category": "通用场景",
+      "support_language": "中文",
+      "gender": "女",
+      "is_support_mix": true,
+      "core_feature": "情感丰富",
+      "remarks": null
+    },
+    {
+      "name": "zh_male_boyuan",
+      "voice_type": "standard",
+      "locale": "中文",
+      "description": "沉稳男声",
+      "scene_category": "纪录片",
+      "support_language": "中文",
+      "gender": "男",
+      "is_support_mix": false,
+      "core_feature": "低沉磁性",
+      "remarks": null
+    }
+  ],
+  "storage_objects": [
+    {
+      "object_key": "1/abc123.jpg",
+      "url": "https://your-oss-domain.com/1/abc123.jpg",
+      "organization_id": 1
+    },
+    {
+      "object_key": "uploads/1/sample.mp3",
+      "url": "https://your-oss-domain.com/uploads/1/sample.mp3",
+      "organization_id": 1
+    }
+  ],
+  "tokens": {
+    "mock-admin-token": 1,
+    "mock-editor-token": 2
+  }
+}

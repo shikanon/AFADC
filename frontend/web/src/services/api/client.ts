@@ -1,7 +1,7 @@
 import { message } from '../../components/Common/Message';
 
 // API基础URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://115.190.79.225:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://115.190.79.225:8100';
 
 // 请求配置接口
 interface RequestConfig extends RequestInit {
