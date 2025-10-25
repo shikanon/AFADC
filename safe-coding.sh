@@ -194,10 +194,7 @@ commit_changes() {
     git checkout "$BASE_BRANCH" || error_exit "切换到主分支失败"
     git merge --no-ff "$current_branch" -m "$final_commit_msg" || error_exit "合并到主分支失败"
     log "将临时分支 $current_branch 合并到主分支 $BASE_BRANCH，信息: $final_commit_msg"
-    
-    # 步骤4：删除临时分支
-    git branch -d "$current_branch" || error_exit "删除临时分支失败"
-    log "已删除临时分支: $current_branch"
+
     
     success "所有修改已成功合并到主分支「$BASE_BRANCH」"
     echo "提示: 主分支当前包含临时分支的所有变更（包括你的自主提交）"
