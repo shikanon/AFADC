@@ -74,6 +74,76 @@
       "organization_id": 1,
       "created_by_id": 2,
       "created_at": "2024-03-15T09:30:00Z"
+    },
+    {
+      "id": 4,
+      "name": "未来都市",
+      "project_type": "dynamic_comic",
+      "status": "draft",
+      "description": "2150年的未来都市生活故事",
+      "prompt": "创作一部未来都市主题的动态漫画,高楼大厦之间有飞行汽车穿梭,霓虹灯闪烁,色调以蓝色和紫色为主,加入一些全息投影效果",
+      "cover_image": "https://s.coze.cn/t/QowWGvpnBjI",
+      "video_scale": "16:9",
+      "video_resolution": "2K",
+      "organization_id": 1,
+      "created_by_id": 1,
+      "created_at": "2024-04-01T10:15:00Z"
+    },
+    {
+      "id": 5,
+      "name": "古风武侠",
+      "project_type": "static_comic",
+      "status": "completed",
+      "description": "古代武侠江湖恩怨故事",
+      "prompt": "创作一部古风武侠漫画,青山绿水之间有江湖人士,人物穿着传统武侠服装,画面具有中国水墨画风格,色调以绿色和棕色为主",
+      "cover_image": "https://s.coze.cn/t/GAy3o2AYGps/",
+      "video_scale": "4:3",
+      "video_resolution": "1080p",
+      "organization_id": 1,
+      "created_by_id": 2,
+      "created_at": "2024-02-20T14:20:00Z"
+    },
+    {
+      "id": 6,
+      "name": "校园青春",
+      "project_type": "static_comic",
+      "status": "progress",
+      "description": "当代高中生的青春成长故事",
+      "prompt": "创作一部校园青春漫画,明亮的教室和校园场景,充满活力的学生角色,画面风格清新明亮,色调以阳光黄和天蓝色为主",
+      "cover_image": "https://s.coze.cn/t/u2rYKPjKGdY/",
+      "video_scale": "16:9",
+      "video_resolution": "1080p",
+      "organization_id": 1,
+      "created_by_id": 1,
+      "created_at": "2024-04-15T09:30:00Z"
+    },
+    {
+      "id": 7,
+      "name": "星际探险",
+      "project_type": "dynamic_comic",
+      "status": "draft",
+      "description": "人类探索宇宙的科幻冒险故事",
+      "prompt": "创作一部星际探险科幻动态漫画,宇宙飞船在星空背景中航行,外星行星表面探索,角色穿着宇航服,色调以深蓝色和银色为主",
+      "cover_image": "https://s.coze.cn/t/TasDoxySgaM/",
+      "video_scale": "16:9",
+      "video_resolution": "4K",
+      "organization_id": 1,
+      "created_by_id": 2,
+      "created_at": "2024-05-01T16:45:00Z"
+    },
+    {
+      "id": 8,
+      "name": "童话故事集",
+      "project_type": "static_comic",
+      "status": "failed",
+      "description": "多个经典童话故事的漫画改编",
+      "prompt": "创作一部童话故事集漫画,梦幻的童话场景,色彩鲜艳丰富,角色设计可爱讨喜,每个故事有不同的艺术风格",
+      "cover_image": "https://s.coze.cn/t/DqerUXNTQB8/",
+      "video_scale": "16:9",
+      "video_resolution": "720p",
+      "organization_id": 1,
+      "created_by_id": 1,
+      "created_at": "2024-03-01T11:00:00Z"
     }
   ],
   "chapters": [
@@ -114,6 +184,96 @@
       "scene_description": "夜晚街道的神秘氛围。",
       "image_url": "https://s.coze.cn/t/TasDoxySgaM/",
       "created_at": "2024-03-15T09:36:00Z"
+    },
+    {
+      "id": 3,
+      "project_id": 1,
+      "chapter_id": null,
+      "order_index": 1,
+      "dialogue": "这是一个全新的旅程。",
+      "scene_description": "阳光明媚的早晨,主角从床上醒来。",
+      "image_url": "https://s.coze.cn/t/GAy3o2AYGps/",
+      "created_at": "2024-01-01T00:10:00Z"
+    },
+    {
+      "id": 4,
+      "project_id": 2,
+      "chapter_id": 1,
+      "order_index": 1,
+      "dialogue": "别回头,继续前进!",
+      "scene_description": "雨夜中奔跑的两个身影,闪电划破天空。",
+      "image_url": "https://s.coze.cn/t/u2rYKPjKGdY/",
+      "created_at": "2024-03-15T09:40:00Z"
+    },
+    {
+      "id": 5,
+      "project_id": 2,
+      "chapter_id": 2,
+      "order_index": 0,
+      "dialogue": "没想到你会背叛我们!",
+      "scene_description": "反派露出狰狞的笑容,周围环境昏暗。",
+      "image_url": "https://s.coze.cn/t/QowWGvpnBjI",
+      "created_at": "2024-03-15T10:15:00Z"
+    },
+    {
+      "id": 6,
+      "project_id": 3,
+      "chapter_id": null,
+      "order_index": 0,
+      "dialogue": "欢迎来到魔法学院,新生。",
+      "scene_description": "宏伟的魔法学院大门,学生们穿着长袍进出。",
+      "image_url": "https://s.coze.cn/t/DqerUXNTQB8/",
+      "created_at": "2024-03-16T08:20:00Z"
+    },
+    {
+      "id": 7,
+      "project_id": 3,
+      "chapter_id": null,
+      "order_index": 1,
+      "dialogue": "这是你的魔杖,要好好珍惜。",
+      "scene_description": "老教授将魔杖递给年轻的主角。",
+      "image_url": "https://s.coze.cn/t/FnkONWFn8cc",
+      "created_at": "2024-03-16T08:25:00Z"
+    },
+    {
+      "id": 8,
+      "project_id": 4,
+      "chapter_id": null,
+      "order_index": 0,
+      "dialogue": "未来已来,你准备好了吗?",
+      "scene_description": "未来都市的全景,飞行汽车在高楼间穿梭。",
+      "image_url": "https://s.coze.cn/t/W5yRxy57L5A/",
+      "created_at": "2024-04-01T10:20:00Z"
+    },
+    {
+      "id": 9,
+      "project_id": 5,
+      "chapter_id": null,
+      "order_index": 0,
+      "dialogue": "在下名号,江湖人称'白衣孟尝'。",
+      "scene_description": "武侠站在山顶,衣袂随风飘舞。",
+      "image_url": "https://s.coze.cn/t/TasDoxySgaM/",
+      "created_at": "2024-02-20T14:30:00Z"
+    },
+    {
+      "id": 10,
+      "project_id": 6,
+      "chapter_id": null,
+      "order_index": 0,
+      "dialogue": "新的学期,新的开始!",
+      "scene_description": "开学第一天,学生们走进教室。",
+      "image_url": "https://s.coze.cn/t/GAy3o2AYGps/",
+      "created_at": "2024-04-15T09:35:00Z"
+    },
+    {
+      "id": 11,
+      "project_id": 7,
+      "chapter_id": null,
+      "order_index": 0,
+      "dialogue": "前方发现未知星球信号!",
+      "scene_description": "宇航员在驾驶舱中观察星空图。",
+      "image_url": "https://s.coze.cn/t/u2rYKPjKGdY/",
+      "created_at": "2024-05-01T16:50:00Z"
     }
   ],
   "scenes": [
@@ -134,6 +294,87 @@
       "prompt": "描绘主角在雨夜追逐反派的动态镜头,强调动感与紧张氛围",
       "image_url": "https://s.coze.cn/t/u2rYKPjKGdY/",
       "created_at": "2024-03-15T09:45:00Z"
+    },
+    {
+      "id": 3,
+      "project_id": 1,
+      "name": "阳光小屋",
+      "description": "主角的温馨小屋,阳光透过窗户洒在地板上。",
+      "prompt": "生成一个温馨的小屋内部,阳光透过窗户,家具摆放整齐,色调温暖舒适",
+      "image_url": "https://s.coze.cn/t/QowWGvpnBjI",
+      "created_at": "2024-01-01T00:15:00Z"
+    },
+    {
+      "id": 4,
+      "project_id": 2,
+      "name": "秘密基地",
+      "description": "主角团队的秘密集会地点,藏在城市地下。",
+      "prompt": "生成一个地下秘密基地,高科技设备,昏暗的蓝色灯光,墙上有各种监控屏幕",
+      "image_url": "https://s.coze.cn/t/DqerUXNTQB8/",
+      "created_at": "2024-03-15T09:50:00Z"
+    },
+    {
+      "id": 5,
+      "project_id": 3,
+      "name": "魔法学院大厅",
+      "description": "魔法学院的中央大厅,宏伟壮观,魔法元素流转。",
+      "prompt": "生成一个宏伟的魔法学院大厅,高高的拱顶,墙上有魔法符文发光,地面是大理石花纹",
+      "image_url": "https://s.coze.cn/t/FnkONWFn8cc",
+      "created_at": "2024-03-16T08:30:00Z"
+    },
+    {
+      "id": 6,
+      "project_id": 3,
+      "name": "禁林边缘",
+      "description": "魔法学院后面的神秘禁林边缘,充满未知和危险。",
+      "prompt": "生成一片神秘的魔法森林边缘,高大的古树,阳光透过树叶形成光束,隐约有奇异生物的影子",
+      "image_url": "https://s.coze.cn/t/W5yRxy57L5A/",
+      "created_at": "2024-03-16T08:35:00Z"
+    },
+    {
+      "id": 7,
+      "project_id": 4,
+      "name": "空中花园",
+      "description": "未来都市中的空中花园,城市中的绿洲。",
+      "prompt": "生成一个建在摩天大楼顶部的空中花园,绿植茂盛,有瀑布和池塘,远处是城市天际线",
+      "image_url": "https://s.coze.cn/t/TasDoxySgaM/",
+      "created_at": "2024-04-01T10:25:00Z"
+    },
+    {
+      "id": 8,
+      "project_id": 4,
+      "name": "地下黑市",
+      "description": "未来都市中的地下黑市,各种非法交易在这里进行。",
+      "prompt": "生成一个未来风格的地下黑市,霓虹灯闪烁,商贩叫卖各种高科技物品,人群熙熙攘攘",
+      "image_url": "https://s.coze.cn/t/GAy3o2AYGps/",
+      "created_at": "2024-04-01T10:30:00Z"
+    },
+    {
+      "id": 9,
+      "project_id": 5,
+      "name": "江湖客栈",
+      "description": "武侠世界中的经典客栈,各方人士汇聚之地。",
+      "prompt": "生成一个古风客栈内部,木质结构,八仙桌,店小二忙碌,墙上挂着兵器和酒葫芦",
+      "image_url": "https://s.coze.cn/t/u2rYKPjKGdY/",
+      "created_at": "2024-02-20T14:35:00Z"
+    },
+    {
+      "id": 10,
+      "project_id": 6,
+      "name": "校园操场",
+      "description": "阳光明媚的校园操场,学生们正在进行各种活动。",
+      "prompt": "生成一个现代化校园操场,绿色草坪,红色跑道,学生们在运动,天空湛蓝",
+      "image_url": "https://s.coze.cn/t/QowWGvpnBjI",
+      "created_at": "2024-04-15T09:40:00Z"
+    },
+    {
+      "id": 11,
+      "project_id": 7,
+      "name": "外星地表",
+      "description": "未知星球的奇异地表,有着奇特的地貌和植物。",
+      "prompt": "生成一个外星行星地表,奇特的岩石结构,色彩斑斓的外星植物,远处有奇异的山脉",
+      "image_url": "https://s.coze.cn/t/DqerUXNTQB8/",
+      "created_at": "2024-05-01T16:55:00Z"
     }
   ],
   "characters": [
@@ -162,6 +403,162 @@
       "voice_script": "床前明月光,疑是地上霜",
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "project_id": 2,
+      "display_name": "叶知秋",
+      "description": "主角,秘密组织成员,身手不凡",
+      "prompt": "年轻男性,短发,穿着黑色战术服装,眼神锐利,表情坚毅,身材矫健",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/TasDoxySgaM/",
+          "alt": "正面"
+        },
+        {
+          "src": "https://s.coze.cn/t/u2rYKPjKGdY/",
+          "alt": "战斗姿势"
+        }
+      ],
+      "voice_preset": "zh_male_boyuan",
+      "voice_speed": 1.2,
+      "voice_script": "我们必须阻止他们的阴谋!",
+      "created_at": "2024-03-15T09:20:00Z",
+      "updated_at": "2024-03-15T09:20:00Z"
+    },
+    {
+      "id": 3,
+      "project_id": 2,
+      "display_name": "苏影",
+      "description": "女主角,黑客专家,叶知秋的搭档",
+      "prompt": "年轻女性,长发扎成马尾,戴着眼镜,穿着休闲科技风格服装,表情智慧",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/QowWGvpnBjI",
+          "alt": "正面"
+        },
+        {
+          "src": "https://s.coze.cn/t/DqerUXNTQB8/",
+          "alt": "工作状态"
+        }
+      ],
+      "voice_preset": "zh_female_xiaoxiao",
+      "voice_speed": 1.3,
+      "voice_script": "我已经黑入系统,可以获取所有数据了。",
+      "created_at": "2024-03-15T09:25:00Z",
+      "updated_at": "2024-03-15T09:25:00Z"
+    },
+    {
+      "id": 4,
+      "project_id": 3,
+      "display_name": "林小雨",
+      "description": "主角,魔法学院新生,拥有特殊魔法天赋",
+      "prompt": "年轻女孩,长发披肩,穿着魔法学院校服,眼神充满好奇和勇气",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/FnkONWFn8cc",
+          "alt": "正面"
+        },
+        {
+          "src": "https://s.coze.cn/t/W5yRxy57L5A/",
+          "alt": "施法姿势"
+        }
+      ],
+      "voice_preset": "zh_female_xiaoxiao",
+      "voice_speed": 1.0,
+      "voice_script": "我一定会成为最伟大的魔法师!",
+      "created_at": "2024-03-16T08:10:00Z",
+      "updated_at": "2024-03-16T08:10:00Z"
+    },
+    {
+      "id": 5,
+      "project_id": 3,
+      "display_name": "亚瑟教授",
+      "description": "魔法学院资深教授,林小雨的导师",
+      "prompt": "年长男性,银白胡须,戴着眼镜,穿着魔法长袍,手持魔杖,气质威严而慈祥",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/GAy3o2AYGps/",
+          "alt": "正面"
+        }
+      ],
+      "voice_preset": "zh_male_boyuan",
+      "voice_speed": 0.9,
+      "voice_script": "魔法的力量来自内心的信念。",
+      "created_at": "2024-03-16T08:15:00Z",
+      "updated_at": "2024-03-16T08:15:00Z"
+    },
+    {
+      "id": 6,
+      "project_id": 4,
+      "display_name": "陈星",
+      "description": "主角,未来都市中的科技天才",
+      "prompt": "年轻男性,中短发,戴着高科技眼镜,穿着未来风格服装,表情自信",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/TasDoxySgaM/",
+          "alt": "正面"
+        }
+      ],
+      "voice_preset": "zh_male_boyuan",
+      "voice_speed": 1.1,
+      "voice_script": "科技改变世界,但决定未来的是我们自己。",
+      "created_at": "2024-04-01T10:10:00Z",
+      "updated_at": "2024-04-01T10:10:00Z"
+    },
+    {
+      "id": 7,
+      "project_id": 5,
+      "display_name": "萧峰",
+      "description": "主角,江湖侠客,行侠仗义",
+      "prompt": "年轻男性,长发束起,穿着古代侠客服装,腰间配剑,气质豪迈",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/u2rYKPjKGdY/",
+          "alt": "正面"
+        }
+      ],
+      "voice_preset": "zh_male_boyuan",
+      "voice_speed": 1.0,
+      "voice_script": "路见不平,拔刀相助!",
+      "created_at": "2024-02-20T14:25:00Z",
+      "updated_at": "2024-02-20T14:25:00Z"
+    },
+    {
+      "id": 8,
+      "project_id": 6,
+      "display_name": "张小雨",
+      "description": "主角,高中生,活泼开朗",
+      "prompt": "女高中生,齐肩短发,穿着校服,笑容阳光,充满青春活力",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/QowWGvpnBjI",
+          "alt": "正面"
+        }
+      ],
+      "voice_preset": "zh_female_xiaoxiao",
+      "voice_speed": 1.2,
+      "voice_script": "今天也要加油啊!",
+      "created_at": "2024-04-15T09:25:00Z",
+      "updated_at": "2024-04-15T09:25:00Z"
+    },
+    {
+      "id": 9,
+      "project_id": 7,
+      "display_name": "李明",
+      "description": "主角,宇航员,勇敢探索未知",
+      "prompt": "中年男性,短发,穿着宇航服,头盔拿在手中,表情坚毅",
+      "portraits": [
+        {
+          "src": "https://s.coze.cn/t/DqerUXNTQB8/",
+          "alt": "正面"
+        }
+      ],
+      "voice_preset": "zh_male_boyuan",
+      "voice_speed": 1.0,
+      "voice_script": "宇宙如此浩瀚,我们的探索永不停歇。",
+      "created_at": "2024-05-01T16:40:00Z",
+      "updated_at": "2024-05-01T16:40:00Z"
     }
   ],
   "assets": [
@@ -181,6 +578,207 @@
       "object_key": "1/abc123.jpg",
       "uploaded_by_id": 1,
       "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "organization_id": 1,
+      "name": "角色立绘_叶知秋",
+      "description": "动态漫项目主角叶知秋的角色立绘",
+      "asset_type": "IMAGE",
+      "sub_type": "character_ip",
+      "creation_method": "GENERATED",
+      "tags": [
+        "角色",
+        "叶知秋",
+        "动态漫"
+      ],
+      "file_url": "https://s.coze.cn/t/TasDoxySgaM/",
+      "object_key": "1/character_ye_zhiqiu.jpg",
+      "uploaded_by_id": 2,
+      "created_at": "2024-03-15T09:20:00Z"
+    },
+    {
+      "id": 3,
+      "organization_id": 1,
+      "name": "角色立绘_苏影",
+      "description": "动态漫项目女主角苏影的角色立绘",
+      "asset_type": "IMAGE",
+      "sub_type": "character_ip",
+      "creation_method": "GENERATED",
+      "tags": [
+        "角色",
+        "苏影",
+        "黑客",
+        "动态漫"
+      ],
+      "file_url": "https://s.coze.cn/t/QowWGvpnBjI",
+      "object_key": "1/character_su_ying.jpg",
+      "uploaded_by_id": 2,
+      "created_at": "2024-03-15T09:25:00Z"
+    },
+    {
+      "id": 4,
+      "organization_id": 1,
+      "name": "魔法学院场景背景",
+      "description": "魔法学院全景背景图",
+      "asset_type": "IMAGE",
+      "sub_type": "scene",
+      "creation_method": "GENERATED",
+      "tags": [
+        "场景",
+        "魔法学院",
+        "背景"
+      ],
+      "file_url": "https://s.coze.cn/t/FnkONWFn8cc",
+      "object_key": "1/scene_magic_school.jpg",
+      "uploaded_by_id": 2,
+      "created_at": "2024-03-16T08:30:00Z"
+    },
+    {
+      "id": 5,
+      "organization_id": 1,
+      "name": "未来都市天际线",
+      "description": "未来都市全景天际线背景",
+      "asset_type": "IMAGE",
+      "sub_type": "scene",
+      "creation_method": "GENERATED",
+      "tags": [
+        "场景",
+        "未来都市",
+        "科幻"
+      ],
+      "file_url": "https://s.coze.cn/t/W5yRxy57L5A/",
+      "object_key": "1/scene_future_city.jpg",
+      "uploaded_by_id": 1,
+      "created_at": "2024-04-01T10:25:00Z"
+    },
+    {
+      "id": 6,
+      "organization_id": 1,
+      "name": "古风客栈背景",
+      "description": "武侠故事中的客栈内部场景",
+      "asset_type": "IMAGE",
+      "sub_type": "scene",
+      "creation_method": "UPLOAD",
+      "tags": [
+        "场景",
+        "古风",
+        "客栈",
+        "武侠"
+      ],
+      "file_url": "https://s.coze.cn/t/GAy3o2AYGps/",
+      "object_key": "1/scene_ancient_inn.jpg",
+      "uploaded_by_id": 2,
+      "created_at": "2024-02-20T14:35:00Z"
+    },
+    {
+      "id": 7,
+      "organization_id": 1,
+      "name": "校园教室背景",
+      "description": "现代校园教室内部场景",
+      "asset_type": "IMAGE",
+      "sub_type": "scene",
+      "creation_method": "UPLOAD",
+      "tags": [
+        "场景",
+        "校园",
+        "教室"
+      ],
+      "file_url": "https://s.coze.cn/t/u2rYKPjKGdY/",
+      "object_key": "1/scene_classroom.jpg",
+      "uploaded_by_id": 1,
+      "created_at": "2024-04-15T09:40:00Z"
+    },
+    {
+      "id": 8,
+      "organization_id": 1,
+      "name": "太空飞船内部",
+      "description": "科幻故事中的太空飞船驾驶舱",
+      "asset_type": "IMAGE",
+      "sub_type": "scene",
+      "creation_method": "GENERATED",
+      "tags": [
+        "场景",
+        "科幻",
+        "太空飞船"
+      ],
+      "file_url": "https://s.coze.cn/t/QowWGvpnBjI",
+      "object_key": "1/scene_spaceship.jpg",
+      "uploaded_by_id": 2,
+      "created_at": "2024-05-01T16:50:00Z"
+    },
+    {
+      "id": 9,
+      "organization_id": 1,
+      "name": "背景音乐_紧张感",
+      "description": "用于动作场景的紧张背景音乐",
+      "asset_type": "AUDIO",
+      "sub_type": "bgm",
+      "creation_method": "UPLOAD",
+      "tags": [
+        "音频",
+        "背景音乐",
+        "紧张",
+        "动作"
+      ],
+      "file_url": "https://your-oss-domain.com/uploads/1/tension_bgm.mp3",
+      "object_key": "1/audio_tension_bgm.mp3",
+      "uploaded_by_id": 1,
+      "created_at": "2024-03-15T10:00:00Z"
+    },
+    {
+      "id": 10,
+      "organization_id": 1,
+      "name": "角色立绘_林小雨",
+      "description": "魔法学院主角林小雨的角色立绘",
+      "asset_type": "IMAGE",
+      "sub_type": "character_ip",
+      "creation_method": "GENERATED",
+      "tags": [
+        "角色",
+        "林小雨",
+        "魔法师"
+      ],
+      "file_url": "https://s.coze.cn/t/DqerUXNTQB8/",
+      "object_key": "1/character_lin_xy.jpg",
+      "uploaded_by_id": 2,
+      "created_at": "2024-03-16T08:10:00Z"
+    },
+    {
+      "id": 11,
+      "organization_id": 1,
+      "name": "魔法特效_火球术",
+      "description": "魔法火球特效动画素材",
+      "asset_type": "VIDEO",
+      "sub_type": "video_effect",
+      "creation_method": "UPLOAD",
+      "tags": [
+        "特效",
+        "魔法",
+        "火球",
+        "视频"
+      ],
+      "file_url": "https://your-oss-domain.com/uploads/1/fireball_effect.mp4",
+      "object_key": "1/effect_fireball.mp4",
+      "uploaded_by_id": 2,
+      "created_at": "2024-03-16T08:40:00Z"
+    },
+    {
+      "id": 12,
+      "organization_id": 1,
+      "name": "未来都市项目配置",
+      "description": "未来都市项目的默认配置文件",
+      "asset_type": "IMAGE",
+      "sub_type": "project_config",
+      "creation_method": "UPLOAD",
+      "tags": [
+        "配置",
+        "项目配置"
+      ],
+      "file_url": "https://your-oss-domain.com/uploads/1/future_city_config.json",
+      "object_key": "1/config_future_city.json",
+      "uploaded_by_id": 1,
+      "created_at": "2024-04-01T10:15:00Z"
     }
   ],
   "tasks": [
