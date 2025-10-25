@@ -115,3 +115,27 @@ export const createProject = async (projectData: CreateProjectParams): Promise<P
     throw error;
   }
 };
+
+/**
+ * 删除项目
+ * @param projectId 项目ID
+ * @returns 成功或失败信息
+ */
+export const deleteProject = async (projectId: number): Promise<void> => {
+  // 打印请求日志
+  console.log('删除项目:', {
+    url: `/api/projects/${projectId}`
+  });
+  
+  try {
+    // 调用API删除项目
+    await apiClient.delete(`/api/projects/${projectId}`);
+    
+    // 打印响应日志
+    console.log('项目删除成功:', projectId);
+  } catch (error) {
+    // 打印错误日志
+    console.error('删除项目失败:', error);
+    throw error;
+  }
+};

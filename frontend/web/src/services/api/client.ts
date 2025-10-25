@@ -125,10 +125,16 @@ class ApiClient {
         timeoutPromise(timeout),
       ]);
 
-      const data = await response.json();
-
       // 检查响应状态
       if (!response.ok) {
+        // 即使状态码不在2xx范围，也尝试解析响应体获取错误信息
+        let data;
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          data = { message: `请求失败: ${response.status}` };
+        }
+        
         throw {
           response: {
             status: response.status,
@@ -137,6 +143,13 @@ class ApiClient {
         };
       }
 
+      // 特殊处理204 No Content响应
+      if (response.status === 204) {
+        return {} as T; // 返回空对象作为默认值
+      }
+
+      // 正常响应解析JSON
+      const data = await response.json();
       return data;
     } catch (error) {
       return handleError(error);

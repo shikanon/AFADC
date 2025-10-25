@@ -5,7 +5,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { Header, Sidebar, PageHeader } from '../../components/Layout';
 import { SearchToolbar, ConfirmDialog } from '../../components/Common';
+import { message } from '../../components/Common/Message';
 import * as api from '../../services/api';
+import { deleteProject } from '../../services/api/project';
 import StaticCreateDialog, { FormData as StaticFormData } from './StaticCreateDialog';
 
 // 使用API定义的项目类型，并进行适配
@@ -61,6 +63,11 @@ function ProjectManagePage() {
   var selectedProjectIdsState = useState<string[]>([]);
   var selectedProjectIds = selectedProjectIdsState[0];
   var setSelectedProjectIds = selectedProjectIdsState[1];
+  
+  // 多选模式状态
+  var isBatchModeState = useState<boolean>(false);
+  var isBatchMode = isBatchModeState[0];
+  var setIsBatchMode = isBatchModeState[1];
   
   // 加载状态和错误处理
   var isLoadingState = useState<boolean>(false);
@@ -225,17 +232,11 @@ function ProjectManagePage() {
     }
   };
 
-  // 批量删除
-  const handleBatchDelete = (): void => {
-    if (selectedProjectIds.length > 0) {
-      handleDeleteWithConfirm();
-    }
-  };
-
   // 删除单个项目
   const handleDeleteProject = (projectId: string): void => {
     setSelectedProjectIds([projectId]);
-    handleDeleteWithConfirm();
+    // 直接传递projectId给handleDeleteWithConfirm，避免依赖异步状态更新
+    handleDeleteWithConfirm(projectId);
   };
 
   // 显示确认对话框
@@ -258,20 +259,56 @@ function ProjectManagePage() {
   };
 
   // 确认删除
-  const handleConfirmDelete = (): void => {
-    console.log('删除项目:', selectedProjectIds);
-    setSelectedProjectIds([]);
+  const handleConfirmDelete = async (): Promise<void> => {
+    if (selectedProjectIds.length === 0) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // 依次删除选中的项目
+      for (const projectId of selectedProjectIds) {
+        await deleteProject(Number(projectId));
+      }
+      
+      // 删除成功后，刷新项目列表
+      await fetchProjects(currentPage, projectSearchTerm);
+      setErrorMessage(null);
+      
+      // 显示成功提示
+      const successMessage = selectedProjectIds.length === 1 
+        ? '项目删除成功' 
+        : `成功删除 ${selectedProjectIds.length} 个项目`;
+      message.success(successMessage);
+    } catch (err) {
+      console.error('删除项目失败:', err);
+      setErrorMessage('删除项目失败，请稍后重试');
+    } finally {
+      setSelectedProjectIds([]);
+      setIsLoading(false);
+    }
   };
 
   // 使用ConfirmDialog的删除处理
-  const handleDeleteWithConfirm = (): void => {
-    if (selectedProjectIds.length === 0) return;
-    
-    const message = selectedProjectIds.length === 1 
-      ? '确定要删除这个项目吗？' 
-      : `确定要删除选中的${selectedProjectIds.length}个项目吗？`;
-    
-    showConfirmDialog('删除确认', message, handleConfirmDelete);
+  // 添加可选的projectId参数，用于单个项目删除，避免依赖异步状态更新
+  const handleDeleteWithConfirm = (projectId?: string): void => {
+    // 如果提供了projectId，说明是单个项目删除，直接显示确认对话框
+    // 否则检查selectedProjectIds是否有值（用于批量删除）
+    if (projectId) {
+      const message = '确定要删除这个项目吗？此操作不可撤销。';
+      showConfirmDialog('删除确认', message, handleConfirmDelete);
+    } else if (selectedProjectIds.length > 0) {
+      const message = selectedProjectIds.length === 1 
+        ? '确定要删除这个项目吗？此操作不可撤销。' 
+        : `确定要删除选中的${selectedProjectIds.length}个项目吗？此操作不可撤销。`;
+      
+      showConfirmDialog('删除确认', message, handleConfirmDelete);
+    }
+  };
+
+  // 批量删除
+  const handleBatchDelete = (): void => {
+    // 批量删除时不传递projectId，让handleDeleteWithConfirm检查selectedProjectIds
+    handleDeleteWithConfirm();
   };
 
   // 项目操作处理
@@ -306,6 +343,15 @@ function ProjectManagePage() {
       // 动态漫仍使用原来的导航逻辑
       navigate('/dynamic-create-step1');
     }
+  };
+  
+  // 切换多选模式
+  const toggleBatchMode = () => {
+    // 切换多选模式时清空已选项目
+    if (isBatchMode) {
+      setSelectedProjectIds([]);
+    }
+    setIsBatchMode(!isBatchMode);
   };
   
   // 处理静态漫表单提交
@@ -417,6 +463,16 @@ function ProjectManagePage() {
             actions={
               <div className="flex items-center space-x-3">
                 <button 
+                  onClick={toggleBatchMode}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isBatchMode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'border border-border-medium text-text-primary hover:bg-bg-secondary'
+                  }`}
+                >
+                  {isBatchMode ? '退出多选模式' : '进入多选模式'}
+                </button>
+                <button 
                   onClick={() => handleCreateProject('static_comic')}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
@@ -438,19 +494,17 @@ function ProjectManagePage() {
             onSearchChange={setProjectSearchTerm}
             searchPlaceholder="搜索剧本名称、ID..."
             actions={
-              <button 
-                onClick={handleBatchDelete}
-                disabled={selectedProjectIds.length === 0}
-                className="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                批量删除
-              </button>
+              isBatchMode && (
+                <button 
+                  onClick={handleBatchDelete}
+                  disabled={selectedProjectIds.length === 0}
+                  className="px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  批量删除({selectedProjectIds.length})
+                </button>
+              )
             }
           />
-
-          {/* 项目列表 */}
-          <div className="bg-white rounded-lg border border-border-light overflow-hidden">
-            <div className="overflow-x-auto">
 
           {/* 确认对话框 */}
           <ConfirmDialog
@@ -462,20 +516,26 @@ function ProjectManagePage() {
             onConfirm={confirmDialogConfig.onConfirm}
             onCancel={confirmDialogConfig.onCancel}
           />
+          
+          {/* 项目列表 */}
+          <div className="bg-white rounded-lg border border-border-light overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-bg-secondary">
                   <tr>
-                    <th className="px-4 py-3 text-left">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedProjectIds.length === filteredProjects.length && filteredProjects.length > 0}
-                        ref={(input) => {
-                          if (input) input.indeterminate = selectedProjectIds.length > 0 && selectedProjectIds.length < filteredProjects.length;
-                        }}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="rounded border-border-medium"
-                      />
-                    </th>
+                    {isBatchMode && (
+                      <th className="px-4 py-3 text-left">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedProjectIds.length === filteredProjects.length && filteredProjects.length > 0}
+                          ref={(input) => {
+                            if (input) input.indeterminate = selectedProjectIds.length > 0 && selectedProjectIds.length < filteredProjects.length;
+                          }}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          className="rounded border-border-medium"
+                        />
+                      </th>
+                    )}
                     <th className="px-4 py-3 text-left text-sm font-medium text-text-secondary">剧本名称</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-text-secondary">类型</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-text-secondary">状态</th>
@@ -487,14 +547,16 @@ function ProjectManagePage() {
                 <tbody>
                   {filteredProjects.map((project: Project) => (
                     <tr key={project.id} className={`border-t border-border-light ${styles.tableRowHover}`}>
-                      <td className="px-4 py-3">
-                        <input 
-                          type="checkbox" 
-                          checked={selectedProjectIds.includes(project.id)}
-                          onChange={(e) => handleSelectProject(project.id, e.target.checked)}
-                          className="rounded border-border-medium"
-                        />
-                      </td>
+                      {isBatchMode && (
+                        <td className="px-4 py-3">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedProjectIds.includes(project.id)}
+                            onChange={(e) => handleSelectProject(project.id, e.target.checked)}
+                            className="rounded border-border-medium"
+                          />
+                        </td>
+                      )}
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-3">
                           <img 
@@ -562,10 +624,11 @@ function ProjectManagePage() {
                             <i className="fas fa-eye"></i>
                           </button>
                           <button 
-                            onClick={() => handleProjectAction(project, 'delete')}
-                            className="text-danger hover:text-red-600 text-sm" 
-                            title="删除"
-                          >
+                              onClick={() => handleProjectAction(project, 'delete')}
+                              className="text-danger hover:text-red-600 text-sm" 
+                              title="删除"
+                              disabled={isBatchMode}
+                            >
                             <i className="fas fa-trash"></i>
                           </button>
                         </div>
