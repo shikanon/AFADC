@@ -1,57 +1,159 @@
 
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import styles from './styles.module.css';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header, Sidebar, PageHeader, StepIndicator } from '../../components/Layout';
+import CharacterSelectDialog from './CharacterSelectDialog';
+import SceneSelectDialog from './SceneSelectDialog';
+import styles from './styles.module.css';
 
-interface FormData {
-  projectName: string;
-  storyBackground: string;
-  styleChoice: 'text' | 'image';
-  stylePrompt: string;
-  videoAspect: string;
-  videoResolution: string;
+interface StoryboardItem {
+  id: string;
+  number: number;
+  characters: string[];
+  scene: string; // 新增场景字段
+  script: string;
+  subtitle: string; // 新增字幕字段
+  previewImages: string[]; // 改为数组，支持多张预览图
+  prompt: string;
 }
 
-interface Asset {
+interface Character {
   id: string;
   name: string;
-  type: string;
-  subtype: string;
-  url: string;
-  tags: string[];
-  uploader: string;
-  uploadTime: string;
+  avatar: string;
 }
 
-const StaticCreateStep1: React.FC = () => {
+interface Scene {
+  id: string;
+  name: string;
+  image: string;
+}
+
+const StaticCreateStep3: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    projectName: '',
-    storyBackground: '',
-    styleChoice: 'text',
-    stylePrompt: '日系动漫风格，明亮的色彩，细腻的线条，可爱的角色设计，背景丰富',
-    videoAspect: '16:9',
-    videoResolution: '1080p'
-  });
-  const [uploadedImage, setUploadedImage] = useState<string>('');
-  const [showUploadedImage, setShowUploadedImage] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [chapterTitle, setChapterTitle] = useState('第一章：魔法学院的第一天');
+  const [chapterContent, setChapterContent] = useState('在一个阳光明媚的早晨，莉莉亚怀着激动的心情来到了魔法学院。这是她梦寐以求的地方，传说中这里培养了无数优秀的魔法师。学院的建筑宏伟壮观，充满了神秘的气息。莉莉亚遇到了她的第一个朋友艾米，两人很快就成为了好朋友。她们一起参观了学院的各个角落，对未来的学习生活充满了期待。');
   
-  // 新增状态：图片选择模式
-  const [imageSelectionMode, setImageSelectionMode] = useState<'upload' | 'asset'>('upload');
-  // 新增状态：资产选择对话框
-  const [showAssetDialog, setShowAssetDialog] = useState(false);
-  // 新增状态：选中的资产图片
-  const [selectedAssetImage, setSelectedAssetImage] = useState<Asset | null>(null);
+  // 角色选择弹窗状态
+  const [isCharacterDialogOpen, setIsCharacterDialogOpen] = useState(false);
+  
+  // 场景选择弹窗状态
+  const [isSceneDialogOpen, setIsSceneDialogOpen] = useState(false);
+  const [currentStoryboardId, setCurrentStoryboardId] = useState<string | null>(null);
+  
+  // 图片放大模态框状态
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string>('');
+  
+  // 预览图选中状态 - 为每个分镜单独管理
+  const [selectedPreviewIndices, setSelectedPreviewIndices] = useState<{[key: string]: number}>({});
+  
+  // 可用角色数据
+  const [availableCharacters] = useState<Character[]>([
+    { id: 'char-001', name: '莉莉亚', avatar: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'char-002', name: '艾米', avatar: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+    { id: 'char-003', name: '老师', avatar: 'https://s.coze.cn/image/5xjn0yDZY4Q/' },
+    { id: 'char-004', name: '校长', avatar: 'https://s.coze.cn/image/dDJ1MTK9Gr0/' },
+    { id: 'char-005', name: '同学甲', avatar: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'char-006', name: '同学乙', avatar: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+  ]);
+  
+  // 可用场景数据
+  const [availableScenes] = useState<Scene[]>([
+    { id: 'scene-001', name: '魔法学院', image: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'scene-002', name: '图书馆', image: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+    { id: 'scene-003', name: '花园', image: 'https://s.coze.cn/image/5xjn0yDZY4Q/' },
+    { id: 'scene-004', name: '教室', image: 'https://s.coze.cn/image/dDJ1MTK9Gr0/' },
+    { id: 'scene-005', name: '走廊', image: 'https://s.coze.cn/image/hXT9hwKARBE/' },
+    { id: 'scene-006', name: '餐厅', image: 'https://s.coze.cn/image/TwWQkCHpzu0/' },
+  ]);
+  
+  const [storyboardItems, setStoryboardItems] = useState<StoryboardItem[]>([
+    {
+      id: 'sb-001',
+      number: 1,
+      characters: ['莉莉亚'],
+      scene: '魔法学院', // 新增场景字段
+      script: '阳光明媚的早晨，莉莉亚站在魔法学院的大门前，眼中闪烁着激动的光芒。学院的建筑宏伟壮观，充满了神秘的气息。',
+      subtitle: '', // 新增字幕字段，初始为空
+      previewImages: [
+        'https://s.coze.cn/image/hXT9hwKARBE/',
+        'https://s.coze.cn/image/TwWQkCHpzu0/',
+        'https://s.coze.cn/image/5xjn0yDZY4Q/'
+      ], // 每个分镜3张预览图
+      prompt: '阳光明媚的早晨，魔法学院大门前，一个年轻的女孩站在那里，眼中充满期待，建筑宏伟壮观，神秘的魔法氛围'
+    },
+    {
+      id: 'sb-002',
+      number: 2,
+      characters: ['莉莉亚', '艾米'],
+      scene: '走廊', // 新增场景字段
+      script: '莉莉亚走进学院，遇到了同样新的艾米。两个女孩很快就聊了起来，发现彼此有很多共同的兴趣爱好。',
+      subtitle: '', // 新增字幕字段，初始为空
+      previewImages: [
+        'https://s.coze.cn/image/TwWQkCHpzu0/',
+        'https://s.coze.cn/image/5xjn0yDZY4Q/',
+        'https://s.coze.cn/image/dDJ1MTK9Gr0/'
+      ], // 每个分镜3张预览图
+      prompt: '学院走廊里，两个年轻女孩在交谈，表情友好，背景是魔法学院的内部装饰'
+    },
+    {
+      id: 'sb-003',
+      number: 3,
+      characters: ['莉莉亚', '艾米'],
+      scene: '图书馆', // 新增场景字段
+      script: '艾米热情地带着莉莉亚参观学院的各个设施，包括图书馆、魔法练习室和餐厅。莉莉亚对这里的一切都感到新奇。',
+      subtitle: '', // 新增字幕字段，初始为空
+      previewImages: [
+        'https://s.coze.cn/image/5xjn0yDZY4Q/',
+        'https://s.coze.cn/image/dDJ1MTK9Gr0/',
+        'https://s.coze.cn/image/hXT9hwKARBE/'
+      ], // 每个分镜3张预览图
+      prompt: '两个女孩在魔法学院的走廊里行走，背景是图书馆的大门，充满知识的氛围'
+    },
+    {
+      id: 'sb-004',
+      number: 4,
+      characters: ['莉莉亚', '艾米'],
+      scene: '花园', // 新增场景字段
+      script: '参观结束后，莉莉亚和艾米坐在学院的花园里，畅谈着未来的梦想和期望。夕阳的余晖洒在她们身上，为这美好的第一天画上了完美的句号。',
+      subtitle: '', // 新增字幕字段，初始为空
+      previewImages: [
+        'https://s.coze.cn/image/dDJ1MTK9Gr0/',
+        'https://s.coze.cn/image/hXT9hwKARBE/',
+        'https://s.coze.cn/image/TwWQkCHpzu0/'
+      ], // 每个分镜3张预览图
+      prompt: '学院花园里，两个女孩坐在长椅上交谈，夕阳西下，温暖的光线洒在她们身上，充满希望氛围'
+    }
+  ]);
+
+  const draggedItemRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = 'AI静态漫制作 - 基础信息设置 - AI漫剧速成工场';
+    document.title = 'AI静态漫制作 - 创建章节，生成分镜画面 - AI漫剧速成工场';
     return () => { document.title = originalTitle; };
   }, []);
+
+  // 初始化每个分镜的选中状态
+  useEffect(() => {
+    const initialStates: {[key: string]: number} = {};
+    storyboardItems.forEach(item => {
+      if (!(item.id in selectedPreviewIndices)) {
+        initialStates[item.id] = 0; // 默认选中第一张预览图
+      }
+    });
+    
+    if (Object.keys(initialStates).length > 0) {
+      setSelectedPreviewIndices(prev => ({
+        ...prev,
+        ...initialStates
+      }));
+    }
+  }, [storyboardItems]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -71,220 +173,223 @@ const StaticCreateStep1: React.FC = () => {
     setIsSidebarCollapsed(collapsed);
   };
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({
+  const handleAiSplit = () => {
+    console.log('调用AI拆书功能');
+    alert('AI拆书功能正在处理中...');
+  };
+
+  const handleBatchGenerate = () => {
+    console.log('批量生成分镜画面');
+    alert('正在批量生成分镜画面，请稍候...');
+  };
+
+  // 新增：处理单个图片生成
+  const handleGenerateImage = (storyboardId: string) => {
+    console.log('生成单个分镜图片，分镜ID:', storyboardId);
+    alert('正在生成分镜图片，请稍候...');
+  };
+
+  const handleAddCharacter = (storyboardId: string) => {
+    setCurrentStoryboardId(storyboardId);
+    setIsCharacterDialogOpen(true);
+  };
+
+  // 处理角色选择确认
+  const handleCharacterSelectionConfirm = (selectedCharacterIds: string[]) => {
+    if (!currentStoryboardId) return;
+    
+    // 将选中的角色ID转换为角色名称
+    const selectedCharacterNames = selectedCharacterIds.map(id => {
+      const character = availableCharacters.find(char => char.id === id);
+      return character ? character.name : '';
+    }).filter(name => name !== '');
+    
+    // 更新分镜项的角色列表
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === currentStoryboardId 
+          ? { ...item, characters: selectedCharacterNames } 
+          : item
+      )
+    );
+    
+    // 重置状态
+    setCurrentStoryboardId(null);
+  };
+
+  // 关闭角色选择弹窗
+  const handleCloseCharacterDialog = () => {
+    setIsCharacterDialogOpen(false);
+    setCurrentStoryboardId(null);
+  };
+
+  // 处理场景选择
+  const handleAddScene = (storyboardId: string) => {
+    setCurrentStoryboardId(storyboardId);
+    setIsSceneDialogOpen(true);
+  };
+
+  // 处理场景选择确认
+  const handleSceneSelectionConfirm = (selectedSceneId: string, storyboardId: string) => {
+    if (!currentStoryboardId) return;
+    
+    // 将选中的场景ID转换为场景名称
+    const selectedSceneName = availableScenes.find(scene => scene.id === selectedSceneId)?.name || '';
+    
+    // 更新分镜项的场景
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === currentStoryboardId 
+          ? { ...item, scene: selectedSceneName } 
+          : item
+      )
+    );
+    
+    // 重置状态
+    setCurrentStoryboardId(null);
+  };
+
+  // 关闭场景选择弹窗
+  const handleCloseSceneDialog = () => {
+    setIsSceneDialogOpen(false);
+    setCurrentStoryboardId(null);
+  };
+
+  // 处理预览图选中
+  const handlePreviewSelect = (storyboardId: string, index: number) => {
+    setSelectedPreviewIndices(prev => ({
       ...prev,
-      [field]: value
+      [storyboardId]: index
     }));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadedImage(result);
-        setShowUploadedImage(true);
-        // 切换到本地上传模式
-        setImageSelectionMode('upload');
-        // 清除资产选择
-        setSelectedAssetImage(null);
-      };
-      reader.readAsDataURL(file);
+  // 处理存入资产库
+  const handleSaveToAssetLibrary = () => {
+    // 显示成功提示
+    alert('成功存入资产库');
+  };
+
+  // 打开图片放大模态框
+  const handleOpenImageModal = (imageUrl: string) => {
+    setModalImageUrl(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
+  // 关闭图片放大模态框
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+    setModalImageUrl('');
+  };
+
+  const handleDeleteStoryboard = (storyboardId: string) => {
+    console.log('删除分镜，分镜ID:', storyboardId);
+    if (confirm('确定要删除这个分镜吗？')) {
+      setStoryboardItems(prevItems => {
+        const updatedItems = prevItems.filter(item => item.id !== storyboardId);
+        return updatedItems.map((item, index) => ({ ...item, number: index + 1 }));
+      });
     }
   };
 
-  const handleRemoveImage = () => {
-    setUploadedImage('');
-    setShowUploadedImage(false);
-    setSelectedAssetImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleReplaceImage = (storyboardId: string) => {
+    console.log('替换分镜图片，分镜ID:', storyboardId);
+    alert('打开资产选择弹窗');
   };
 
-  // 新增：处理图片选择模式切换
-  const handleImageModeChange = (mode: 'upload' | 'asset') => {
-    setImageSelectionMode(mode);
-  };
-
-  // 新增：打开资产选择对话框
-  const handleOpenAssetDialog = () => {
-    setShowAssetDialog(true);
-  };
-
-  // 新增：关闭资产选择对话框
-  const handleCloseAssetDialog = () => {
-    setShowAssetDialog(false);
-  };
-
-  // 新增：处理资产选择
-  const handleAssetSelect = (asset: Asset) => {
-    setSelectedAssetImage(asset);
-    setShowAssetDialog(false);
-    // 清除本地上传
-    setUploadedImage('');
-    setShowUploadedImage(false);
-  };
-
-  // 新增：移除选中的资产图片
-  const handleRemoveAssetImage = () => {
-    setSelectedAssetImage(null);
-  };
-
-  // 新增：模拟资产数据
-  const mockAssets: Asset[] = [
-    {
-      id: 'asset-001',
-      name: '魔法少女立绘',
-      type: 'image',
-      subtype: 'character',
-      url: 'https://s.coze.cn/image/RZUHCmZ3Yf4/',
-      tags: ['魔法', '少女', '立绘'],
-      uploader: '张设计师',
-      uploadTime: '2024-01-15'
-    },
-    {
-      id: 'asset-002',
-      name: '未来都市背景',
-      type: 'image',
-      subtype: 'scene',
-      url: 'https://s.coze.cn/image/fS5ZZ8SEQ7c/',
-      tags: ['未来', '都市', '背景'],
-      uploader: '李动画师',
-      uploadTime: '2024-01-14'
-    },
-    {
-      id: 'asset-003',
-      name: '温馨教室场景',
-      type: 'image',
-      subtype: 'scene',
-      url: 'https://s.coze.cn/image/7608UVkB9ho/',
-      tags: ['教室', '温馨', '场景'],
-      uploader: '王美术',
-      uploadTime: '2024-01-13'
-    },
-    {
-      id: 'asset-004',
-      name: '动漫角色设计',
-      type: 'image',
-      subtype: 'character',
-      url: 'https://s.coze.cn/image/3U0w1HOeG4s/',
-      tags: ['动漫', '角色', '设计'],
-      uploader: '赵画师',
-      uploadTime: '2024-01-12'
-    }
-  ];
-
-  // 新增：资产搜索状态
-  const [assetSearchTerm, setAssetSearchTerm] = useState('');
-  const [filteredAssets, setFilteredAssets] = useState<Asset[]>(mockAssets);
-
-  // 新增：处理资产搜索
-  useEffect(() => {
-    const filtered = mockAssets.filter(asset => 
-      asset.name.toLowerCase().includes(assetSearchTerm.toLowerCase()) ||
-      asset.tags.some(tag => tag.toLowerCase().includes(assetSearchTerm.toLowerCase()))
+  const handleStoryboardScriptChange = (storyboardId: string, newScript: string) => {
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === storyboardId ? { ...item, script: newScript } : item
+      )
     );
-    setFilteredAssets(filtered);
-  }, [assetSearchTerm]);
-
-  const validateForm = (): boolean => {
-    if (!formData.projectName.trim()) {
-      alert('请输入剧本名称');
-      return false;
-    }
-
-    if (!formData.storyBackground.trim()) {
-      alert('请输入故事背景');
-      return false;
-    }
-
-    if (!formData.videoAspect) {
-      alert('请选择视频比例');
-      return false;
-    }
-
-    if (!formData.videoResolution) {
-      alert('请选择分辨率');
-      return false;
-    }
-
-    if (formData.styleChoice === 'text' && !formData.stylePrompt.trim()) {
-      alert('请输入画风提示词');
-      return false;
-    }
-
-    return true;
   };
 
-  const generateProjectId = (): string => {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    return `PROJ-${timestamp}-${random}`;
+  // 新增：处理分镜字幕变化
+  const handleStoryboardSubtitleChange = (storyboardId: string, newSubtitle: string) => {
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === storyboardId ? { ...item, subtitle: newSubtitle } : item
+      )
+    );
   };
 
-  const handleNextStep = () => {
-    if (validateForm()) {
-      const projectId = generateProjectId();
-      const projectData = {
-        projectId,
-        ...formData,
-        step: 1,
-        type: 'static'
-      };
+  const handleStoryboardPromptChange = (storyboardId: string, newPrompt: string) => {
+    setStoryboardItems(prevItems =>
+      prevItems.map(item =>
+        item.id === storyboardId ? { ...item, prompt: newPrompt } : item
+      )
+    );
+  };
 
-      localStorage.setItem('currentProject', JSON.stringify(projectData));
-      navigate(`/static-create-step2?projectId=${projectId}`);
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: StoryboardItem) => {
+    draggedItemRef.current = e.currentTarget;
+    e.currentTarget.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.style.opacity = '1';
+    draggedItemRef.current = null;
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.currentTarget.style.borderColor = '#3B82F6';
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.style.borderColor = '#E2E8F0';
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetItem: StoryboardItem) => {
+    e.preventDefault();
+    e.currentTarget.style.borderColor = '#E2E8F0';
+    
+    if (draggedItemRef.current) {
+      const draggedId = draggedItemRef.current.dataset.storyboardId;
+      if (draggedId && draggedId !== targetItem.id) {
+        setStoryboardItems(prevItems => {
+          const newItems = [...prevItems];
+          const draggedIndex = newItems.findIndex(item => item.id === draggedId);
+          const targetIndex = newItems.findIndex(item => item.id === targetItem.id);
+          
+          [newItems[draggedIndex], newItems[targetIndex]] = [newItems[targetIndex], newItems[draggedIndex]];
+          
+          return newItems.map((item, index) => ({ ...item, number: index + 1 }));
+        });
+      }
     }
+  };
+
+  const handlePrevStep = () => {
+    const projectId = searchParams.get('projectId') || 'default';
+    navigate(`/static-create-step2?projectId=${projectId}`);
   };
 
   const handleSaveDraft = () => {
-    const projectId = generateProjectId();
-    const draftData = {
-      projectId,
-      projectName: formData.projectName.trim() || '未命名项目',
-      storyBackground: formData.storyBackground.trim(),
-      styleChoice: formData.styleChoice,
-      stylePrompt: formData.stylePrompt.trim(),
-      videoAspect: formData.videoAspect,
-      videoResolution: formData.videoResolution,
-      step: 1,
-      type: 'static',
-      status: 'draft'
-    };
-
-    localStorage.setItem('savedProject', JSON.stringify(draftData));
-    alert('草稿保存成功！');
-    navigate('/project-manage');
+    const projectId = searchParams.get('projectId') || 'default';
+    navigate(`/project-manage?projectId=${projectId}`);
   };
 
-  const handleNavigation = (path: string) => {
-    if (confirm('当前页面的内容将不会保存，确定要离开吗？')) {
-      navigate(path);
-    }
+  const handleNextStep = () => {
+    const projectId = searchParams.get('projectId') || 'default';
+    navigate(`/static-create-step4?projectId=${projectId}`);
   };
 
   return (
     <div className={styles.pageWrapper}>
-      {/* 使用Header组件替换重复的顶部导航栏代码 */}
       <Header onSidebarToggle={handleSidebarToggle} />
-
-      {/* 使用Sidebar组件替换重复的侧边栏代码 */}
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        activeMenu="project-manage"
-      />
+      <Sidebar isCollapsed={isSidebarCollapsed} activeMenu="project-manage" />
 
       {/* 主内容区 */}
-      <main className={`pt-16 min-h-screen transition-all duration-300 ${
-        isSidebarCollapsed ? styles.mainContentCollapsed : styles.mainContentExpanded
-      }`}>
+      <main className={`pt-16 min-h-screen transition-all duration-300 ${isSidebarCollapsed ? styles.mainContentCollapsed : styles.mainContentExpanded}`}>
         <div className="p-6">
           {/* 页面头部 - 使用PageHeader组件 */}
           <PageHeader 
-            title="AI静态漫制作 - 基础信息设置"
+            title="AI静态漫制作 - 创建章节，生成分镜画面"
             breadcrumb={[
               { label: '首页', href: '/' },
               { label: '项目管理', href: '/project-manage' },
@@ -292,414 +397,312 @@ const StaticCreateStep1: React.FC = () => {
             ]}
           />
 
-          <div className="flex gap-6">
-            {/* 左侧：步骤指示器 */}
-            <div className="w-64 flex-shrink-0">
-              <div className="bg-white rounded-lg border border-border-light p-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">制作流程</h3>
-                <StepIndicator
-                  currentStep={1}
-                  steps={[
-                    { id: 1, title: '基础信息设置', description: '设置剧本基本信息' },
-                    { id: 2, title: '确认角色', description: '创建或选择角色IP' },
-                    { id: 3, title: '创建章节，生成分镜画面', description: '拆分剧本，生成画面' },
-                    { id: 4, title: '合成最终视频', description: '配置并生成视频' }
-                  ]}
-                  direction="vertical"
+          {/* 步骤指示器 */}
+          <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
+            <StepIndicator
+              currentStep={3}
+              steps={[
+                { id: 1, title: '基础信息设置', description: '设置剧本名称、画风等' },
+                { id: 2, title: '确认角色', description: '创建或选择角色IP' },
+                { id: 3, title: '创建章节，生成分镜画面', description: '拆分剧本，生成画面' },
+                { id: 4, title: '合成最终视频', description: '配置并生成视频' }
+              ]}
+              direction="horizontal"
+            />
+          </div>
+
+          {/* 章节输入区 */}
+          <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">章节内容</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="chapter-title" className="block text-sm font-medium text-text-primary mb-2">章节标题</label>
+                <input 
+                  type="text" 
+                  id="chapter-title" 
+                  value={chapterTitle}
+                  onChange={(e) => setChapterTitle(e.target.value)}
+                  className="w-full px-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
+              </div>
+              <div>
+                <label htmlFor="chapter-content" className="block text-sm font-medium text-text-primary mb-2">章节内容</label>
+                <textarea 
+                  id="chapter-content" 
+                  rows={6}
+                  value={chapterContent}
+                  onChange={(e) => setChapterContent(e.target.value)}
+                  className="w-full px-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  placeholder="请输入章节的详细内容..."
+                />
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  onClick={handleAiSplit}
+                  className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <i className="fas fa-magic mr-2"></i>AI拆书
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 分镜列表 */}
+          <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-primary">分镜列表</h3>
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-text-secondary">共 <span>{storyboardItems.length}</span> 个分镜</span>
+                <button 
+                  onClick={handleBatchGenerate}
+                  className="px-4 py-2 bg-tertiary text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <i className="fas fa-play mr-2"></i>批量生成分镜画面
+                </button>
               </div>
             </div>
 
-            {/* 右侧：表单区域 */}
-            <div className="flex-1">
-              <div className="bg-white rounded-lg border border-border-light p-6">
-                <form className="space-y-6">
-                  {/* 剧本名称 */}
-                  <div className="space-y-2">
-                    <label htmlFor="project-name" className="block text-sm font-medium text-text-primary">剧本名称 *</label>
-                    <input 
-                      type="text" 
-                      id="project-name" 
-                      value={formData.projectName}
-                      onChange={(e) => handleInputChange('projectName', e.target.value)}
-                      className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus}`}
-                      placeholder="请输入剧本名称" 
-                      required 
-                    />
-                    <p className="text-xs text-text-secondary">建议包含作品类型和主题，便于后续管理</p>
-                  </div>
-
-                  {/* 故事背景 */}
-                  <div className="space-y-2">
-                    <label htmlFor="story-background" className="block text-sm font-medium text-text-primary">故事背景 *</label>
-                    <textarea 
-                      id="story-background" 
-                      rows={4}
-                      value={formData.storyBackground}
-                      onChange={(e) => handleInputChange('storyBackground', e.target.value)}
-                      className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus} resize-none`}
-                      placeholder="请简要描述故事的背景设定、主要情节等..." 
-                      required
-                    />
-                    <p className="text-xs text-text-secondary">详细的背景描述有助于AI生成更符合预期的画面</p>
-                  </div>
-
-                  {/* 画风选择 */}
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-text-primary">画风选择 *</label>
+            <div className="space-y-4">
+              {storyboardItems.map((item) => (
+                <div 
+                  key={item.id}
+                  data-storyboard-id={item.id}
+                  className={`${styles.storyboardCard} bg-bg-secondary rounded-lg p-4 border border-border-light`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, item)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={handleDragOver}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, item)}
+                >
+                  <div className="flex items-start space-x-4">
+                    {/* 拖拽手柄 */}
+                    <div className={`${styles.dragHandle} flex flex-col justify-center space-y-1`}>
+                      <i className="fas fa-grip-vertical text-text-secondary"></i>
+                    </div>
                     
-                    <div className="space-y-3">
-                      {/* 文本提示词选项 */}
-                      <div className="flex items-start space-x-3 p-4 border border-border-light rounded-lg hover:bg-bg-secondary transition-colors cursor-pointer">
-                        <input 
-                          type="radio" 
-                          id="style-text" 
-                          name="style-choice" 
-                          value="text" 
-                          checked={formData.styleChoice === 'text'}
-                          onChange={(e) => handleInputChange('styleChoice', e.target.value)}
-                          className={`${styles.radioCustom} mt-1`}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <i className="fas fa-pen text-primary"></i>
-                            <span className="font-medium text-text-primary">文本提示词</span>
+                    {/* 分镜信息 - 左右分栏布局 */}
+                    <div className={`flex-1 ${styles.storyboardLayout}`}>
+                      {/* 左列：关联角色、关联场景、分镜脚本、分镜字幕 */}
+                      <div className={styles.leftColumn}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-text-primary">分镜 #{item.number}</span>
+                            <span className="text-xs text-text-secondary">ID: {item.id.toUpperCase()}</span>
                           </div>
-                          <p className="text-sm text-text-secondary mb-3">通过文字描述来定义画风风格</p>
-                          {formData.styleChoice === 'text' && (
-                            <div>
-                              <textarea 
-                                id="style-prompt" 
-                                rows={3}
-                                value={formData.stylePrompt}
-                                onChange={(e) => handleInputChange('stylePrompt', e.target.value)}
-                                className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus} resize-none`}
-                                placeholder="例如：日系动漫风格，明亮的色彩，细腻的线条，可爱的角色设计，背景丰富..."
-                              />
+                          <div className="flex items-center space-x-2">
+                            <button 
+                              onClick={() => handleAddCharacter(item.id)}
+                              className="text-primary hover:text-blue-600 text-sm" 
+                              title="添加角色"
+                            >
+                              <i className="fas fa-user-plus"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleAddScene(item.id)}
+                              className="text-primary hover:text-blue-600 text-sm" 
+                              title="添加场景"
+                            >
+                              <i className="fas fa-image"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteStoryboard(item.id)}
+                              className="text-danger hover:text-red-600 text-sm" 
+                              title="删除"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* 关联角色和关联场景 - 同一行显示 */}
+                        <div className="flex space-x-4">
+                          {/* 关联角色 */}
+                          <div className="flex-1">
+                            <label className={styles.unifiedLabel}>关联角色</label>
+                            <div className="flex flex-wrap gap-1">
+                              {item.characters.map((character, index) => (
+                                <span key={index} className={styles.characterTag}>{character}</span>
+                              ))}
                             </div>
-                          )}
+                          </div>
+                          
+                          {/* 关联场景 */}
+                          <div className="flex-1">
+                            <label className={styles.unifiedLabel}>关联场景</label>
+                            <div className="flex flex-wrap gap-1">
+                              {item.scene && (
+                                <span className={styles.sceneTag}>{item.scene}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* 分镜脚本 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>分镜脚本</label>
+                          <textarea 
+                            value={item.script}
+                            onChange={(e) => handleStoryboardScriptChange(item.id, e.target.value)}
+                            className={`${styles.fixedHeightTextarea} ${styles.scriptTextarea}`}
+                          />
+                        </div>
+                        
+                        {/* 分镜字幕 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>分镜字幕</label>
+                          <textarea 
+                            value={item.subtitle}
+                            onChange={(e) => handleStoryboardSubtitleChange(item.id, e.target.value)}
+                            className={`${styles.fixedHeightTextarea} ${styles.subtitleTextarea}`}
+                            placeholder="请输入分镜字幕内容..."
+                          />
                         </div>
                       </div>
-
-                      {/* 参考图片选项 */}
-                      <div className="flex items-start space-x-3 p-4 border border-border-light rounded-lg hover:bg-bg-secondary transition-colors cursor-pointer">
-                        <input 
-                          type="radio" 
-                          id="style-image" 
-                          name="style-choice" 
-                          value="image" 
-                          checked={formData.styleChoice === 'image'}
-                          onChange={(e) => handleInputChange('styleChoice', e.target.value)}
-                          className={`${styles.radioCustom} mt-1`}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <i className="fas fa-image text-secondary"></i>
-                            <span className="font-medium text-text-primary">参考图片</span>
-                          </div>
-                          <p className="text-sm text-text-secondary mb-3">上传参考图片来定义画风风格</p>
-                          {formData.styleChoice === 'image' && (
-                            <div>
-                              {/* 图片选择模式切换 */}
-                              <div className="flex mb-4 bg-gray-100 rounded-lg p-1">
-                                <button
-                                  type="button"
-                                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 ${
-                                    imageSelectionMode === 'upload'
-                                      ? 'bg-primary text-white shadow-sm'
-                                      : 'text-gray-600 hover:text-gray-800'
-                                  }`}
-                                  onClick={() => handleImageModeChange('upload')}
+                      
+                      {/* 右列：生成提示词、画面预览 */}
+                      <div className={styles.rightColumn}>
+                        {/* 生成提示词 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>生成提示词</label>
+                          <textarea 
+                            value={item.prompt}
+                            onChange={(e) => handleStoryboardPromptChange(item.id, e.target.value)}
+                            className={`${styles.fixedHeightTextarea} ${styles.scriptTextarea}`}
+                          />
+                        </div>
+                        
+                        {/* 画面预览 */}
+                        <div>
+                          <label className={styles.unifiedLabel}>画面预览</label>
+                          <div className={styles.previewContainer}>
+                            {/* 预览图横向排列 */}
+                            <div className={styles.previewImagesContainer}>
+                              {item.previewImages.map((previewImage, index) => (
+                                <div 
+                                  key={index}
+                                  className={`${styles.previewImageWrapper} ${selectedPreviewIndices[item.id] === index ? styles.selected : ''}`}
+                                  onClick={() => handlePreviewSelect(item.id, index)}
                                 >
-                                  本地上传
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 ${
-                                    imageSelectionMode === 'asset'
-                                      ? 'bg-primary text-white shadow-sm'
-                                      : 'text-gray-600 hover:text-gray-800'
-                                  }`}
-                                  onClick={() => handleImageModeChange('asset')}
-                                >
-                                  资产管理选择
-                                </button>
-                              </div>
-
-                              {/* 本地上传模式 */}
-                              {imageSelectionMode === 'upload' && (
-                                <div className={`transition-opacity duration-300 ${imageSelectionMode === 'upload' ? 'opacity-100' : 'opacity-0 absolute'}`}>
-                                  {!showUploadedImage ? (
-                                    <div 
-                                      onClick={() => fileInputRef.current?.click()}
-                                      className="border-2 border-dashed border-border-light rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
-                                    >
-                                      <i className="fas fa-cloud-upload-alt text-3xl text-text-secondary mb-2"></i>
-                                      <p className="text-sm text-text-secondary mb-1">点击上传参考图片</p>
-                                      <p className="text-xs text-text-secondary">支持 JPG、PNG 格式，最大 10MB</p>
-                                      <input 
-                                        type="file" 
-                                        ref={fileInputRef}
-                                        onChange={handleFileUpload}
-                                        accept="image/*" 
-                                        className="hidden"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="mt-3">
-                                      <img 
-                                        src={uploadedImage} 
-                                        alt="参考图片预览" 
-                                        className="w-32 h-32 rounded-lg object-cover"
-                                      />
-                                      <button 
-                                        type="button" 
-                                        onClick={handleRemoveImage}
-                                        className="mt-2 text-danger text-sm hover:underline"
-                                      >
-                                        移除图片
-                                      </button>
-                                    </div>
-                                  )}
+                                  <img 
+                                    src={previewImage}
+                                    alt={`预览图 ${index + 1}`}
+                                  />
                                 </div>
-                              )}
-
-                              {/* 资产管理选择模式 */}
-                              {imageSelectionMode === 'asset' && (
-                                <div className={`transition-opacity duration-300 ${imageSelectionMode === 'asset' ? 'opacity-100' : 'opacity-0 absolute'}`}>
-                                  {!selectedAssetImage ? (
-                                    <div>
-                                      {/* 搜索栏 */}
-                                      <div className="relative mb-4">
-                                        <input
-                                          type="text"
-                                          value={assetSearchTerm}
-                                          onChange={(e) => setAssetSearchTerm(e.target.value)}
-                                          placeholder="搜索资产中的图片..."
-                                          className="w-full px-4 py-2 pl-10 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                                        />
-                                        <i className="fas fa-search absolute left-3 top-3 text-text-secondary"></i>
-                                      </div>
-                                      
-                                      {/* 资产图片预览 */}
-                                      <div className="grid grid-cols-3 gap-2 mb-4 max-h-40 overflow-y-auto">
-                                        {filteredAssets.slice(0, 6).map(asset => (
-                                          <div
-                                            key={asset.id}
-                                            className="relative group cursor-pointer"
-                                            onClick={() => handleAssetSelect(asset)}
-                                          >
-                                            <img
-                                              src={asset.url}
-                                              alt={asset.name}
-                                              className="w-full h-24 object-cover rounded-lg border border-border-light hover:border-primary transition-colors"
-                                            />
-                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                              <i className="fas fa-check text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"></i>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                      
-                                      {/* 选择更多按钮 */}
-                                      <button
-                                        type="button"
-                                        onClick={handleOpenAssetDialog}
-                                        className="w-full py-2 px-4 bg-bg-secondary text-text-primary rounded-lg hover:bg-gray-200 transition-colors text-sm"
-                                      >
-                                        <i className="fas fa-folder-open mr-2"></i>从资产库选择更多图片
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <div className="mt-3">
-                                      <img 
-                                        src={selectedAssetImage.url} 
-                                        alt={selectedAssetImage.name} 
-                                        className="w-32 h-32 rounded-lg object-cover"
-                                      />
-                                      <p className="text-sm text-text-primary mt-2">{selectedAssetImage.name}</p>
-                                      <button 
-                                        type="button" 
-                                        onClick={handleRemoveAssetImage}
-                                        className="mt-2 text-danger text-sm hover:underline"
-                                      >
-                                        移除图片
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              ))}
                             </div>
-                          )}
+                            {/* 按钮区域 - 图片生成、图片放大和存入资产库 */}
+                            <div className={styles.buttonContainer}>
+                              <button 
+                                onClick={() => handleGenerateImage(item.id)}
+                                className={styles.generateImageButton}
+                                title="生成图片"
+                              >
+                                <i className="fas fa-image mr-2"></i>图片生成
+                              </button>
+                              <button 
+                                onClick={() => handleOpenImageModal(item.previewImages[selectedPreviewIndices[item.id]])}
+                                className={styles.enlargeImageButton}
+                                title="放大图片"
+                              >
+                                <i className="fas fa-search-plus mr-2"></i>图片放大
+                              </button>
+                              <button 
+                                onClick={handleSaveToAssetLibrary}
+                                className={styles.saveToAssetButton}
+                              >
+                                <i className="fas fa-save mr-2"></i>存入资产库
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-                  {/* 视频参数设置 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 视频比例 */}
-                    <div className="space-y-2">
-                      <label htmlFor="video-aspect" className="block text-sm font-medium text-text-primary">视频比例 *</label>
-                      <select 
-                        id="video-aspect" 
-                        value={formData.videoAspect}
-                        onChange={(e) => handleInputChange('videoAspect', e.target.value)}
-                        className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus}`}
-                        required
-                      >
-                        <option value="">请选择视频比例</option>
-                        <option value="16:9">16:9 (横屏)</option>
-                        <option value="9:16">9:16 (竖屏)</option>
-                        <option value="1:1">1:1 (正方形)</option>
-                        <option value="4:3">4:3 (标准屏)</option>
-                      </select>
-                      <p className="text-xs text-text-secondary">根据发布平台选择合适的比例</p>
-                    </div>
-
-                    {/* 分辨率 */}
-                    <div className="space-y-2">
-                      <label htmlFor="video-resolution" className="block text-sm font-medium text-text-primary">分辨率 *</label>
-                      <select 
-                        id="video-resolution" 
-                        value={formData.videoResolution}
-                        onChange={(e) => handleInputChange('videoResolution', e.target.value)}
-                        className={`w-full px-4 py-3 border border-border-light rounded-lg ${styles.formInputFocus}`}
-                        required
-                      >
-                        <option value="">请选择分辨率</option>
-                        <option value="1080p">1080p (1920x1080)</option>
-                        <option value="720p">720p (1280x720)</option>
-                        <option value="480p">480p (854x480)</option>
-                        <option value="2160p">4K (3840x2160)</option>
-                      </select>
-                      <p className="text-xs text-text-secondary">更高的分辨率需要更多的计算资源</p>
-                    </div>
-                  </div>
-                </form>
-              </div>
-
-              {/* 操作按钮区 */}
-              <div className="flex items-center justify-end space-x-4 mt-6">
-                <button 
-                  type="button"
-                  onClick={handleSaveDraft}
-                  className="px-6 py-3 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors"
-                >
-                  <i className="fas fa-save mr-2"></i>保存草稿
-                </button>
-                <button 
-                  type="button" 
-                  disabled
-                  className="px-6 py-3 border border-border-medium text-text-secondary rounded-lg opacity-50 cursor-not-allowed"
-                >
-                  <i className="fas fa-chevron-left mr-2"></i>上一步
-                </button>
-                <button 
-                  type="button"
-                  onClick={handleNextStep}
-                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  下一步<i className="fas fa-chevron-right ml-2"></i>
-                </button>
-              </div>
+          {/* 操作按钮区 */}
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-text-secondary">
+              <i className="fas fa-info-circle mr-1"></i>
+              提示：您可以拖拽分镜卡片调整顺序，点击编辑按钮进行详细编辑
+            </div>
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={handlePrevStep}
+                className="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors"
+              >
+                <i className="fas fa-arrow-left mr-2"></i>上一步
+              </button>
+              <button 
+                onClick={handleSaveDraft}
+                className="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-bg-secondary transition-colors"
+              >
+                <i className="fas fa-save mr-2"></i>保存草稿
+              </button>
+              <button 
+                onClick={handleNextStep}
+                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                下一步<i className="fas fa-arrow-right ml-2"></i>
+              </button>
             </div>
           </div>
         </div>
       </main>
       
-      {/* 资产选择对话框 */}
-      {showAssetDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-modal w-full max-w-4xl max-h-[90vh] flex flex-col">
-            {/* 对话框头部 */}
-            <div className="flex items-center justify-between p-6 border-b border-border-light">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <i className="fas fa-image text-white text-sm"></i>
-                </div>
-                <h2 className="text-xl font-semibold text-text-primary">选择参考图片</h2>
-              </div>
-              <button 
-                onClick={handleCloseAssetDialog}
-                className="p-2 rounded-lg hover:bg-bg-secondary transition-colors"
-              >
-                <i className="fas fa-times text-text-secondary"></i>
-              </button>
-            </div>
-
-            {/* 搜索和筛选区域 */}
-            <div className="p-6 border-b border-border-light">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                {/* 搜索框 */}
-                <div className="flex-1 lg:max-w-md">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={assetSearchTerm}
-                      onChange={(e) => setAssetSearchTerm(e.target.value)}
-                      placeholder="搜索资产中的图片..."
-                      className="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <i className="fas fa-search absolute left-3 top-3 text-text-secondary"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 资产列表区域 */}
-            <div className="flex-1 overflow-hidden">
-              <div className="p-6 h-full overflow-y-auto">
-                {/* 资产网格 */}
-                {filteredAssets.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {filteredAssets.map(asset => (
-                      <div
-                        key={asset.id}
-                        className="bg-white rounded-lg border border-border-light p-3 relative cursor-pointer hover:shadow-md transition-all duration-200"
-                        onClick={() => handleAssetSelect(asset)}
-                      >
-                        <div className="relative mb-3 overflow-hidden rounded-lg">
-                          <img
-                            src={asset.url}
-                            alt={asset.name}
-                            className="w-full h-32 object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-                            <i className="fas fa-check text-white opacity-0 hover:opacity-100 transition-opacity duration-200"></i>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium text-text-primary truncate" title={asset.name}>
-                            {asset.name}
-                          </h3>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-text-secondary">{asset.uploader}</span>
-                            <span className="text-xs text-text-secondary">{asset.uploadTime}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  /* 无结果提示 */
-                  <div className="text-center py-12">
-                    <i className="fas fa-search text-4xl text-text-secondary mb-4"></i>
-                    <h3 className="text-lg font-medium text-text-primary mb-2">未找到匹配的资产</h3>
-                    <p className="text-text-secondary">请尝试调整搜索关键词</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 对话框底部操作按钮 */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-border-light bg-bg-secondary">
-              <button 
-                onClick={handleCloseAssetDialog}
-                className="px-6 py-2 border border-border-medium text-text-primary rounded-lg hover:bg-white transition-colors"
-              >
-                取消
-              </button>
+      {/* 角色选择弹窗 */}
+      <CharacterSelectDialog
+        isOpen={isCharacterDialogOpen}
+        onClose={handleCloseCharacterDialog}
+        onConfirm={handleCharacterSelectionConfirm}
+        availableCharacters={availableCharacters}
+        initiallySelected={
+          currentStoryboardId 
+            ? storyboardItems.find(item => item.id === currentStoryboardId)?.characters.map(name => {
+                const character = availableCharacters.find(char => char.name === name);
+                return character ? character.id : '';
+              }).filter(id => id !== '') || []
+            : []
+        }
+        storyboardId={currentStoryboardId || ''}
+      />
+      
+      {/* 场景选择弹窗 */}
+      <SceneSelectDialog
+        isOpen={isSceneDialogOpen}
+        onClose={handleCloseSceneDialog}
+        onConfirm={handleSceneSelectionConfirm}
+        availableScenes={availableScenes}
+        initiallySelected={
+          currentStoryboardId 
+            ? storyboardItems.find(item => item.id === currentStoryboardId)?.scene || ''
+            : ''
+        }
+        storyboardId={currentStoryboardId || ''}
+      />
+      
+      {/* 图片放大模态框 */}
+      {isImageModalOpen && (
+        <div className={styles.imageModalOverlay} onClick={handleCloseImageModal}>
+          <div className={styles.imageModalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.imageModalCloseButton}
+              onClick={handleCloseImageModal}
+              title="关闭"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+            <div className={styles.imageModalImageContainer}>
+              <img 
+                src={modalImageUrl} 
+                alt="放大图片" 
+                className={styles.imageModalImage}
+              />
             </div>
           </div>
         </div>
@@ -708,5 +711,5 @@ const StaticCreateStep1: React.FC = () => {
   );
 };
 
-export default StaticCreateStep1;
+export default StaticCreateStep3;
 

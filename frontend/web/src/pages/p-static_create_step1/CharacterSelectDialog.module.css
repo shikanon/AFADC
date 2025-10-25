@@ -1,0 +1,178 @@
+/* 遮罩层 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* 弹窗主体 */
+.dialog {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 标题区 */
+.header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #1F2937;
+  margin: 0;
+}
+
+/* 角色卡片区 */
+.characterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 角色卡片 - 垂直流式布局 */
+.characterCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background-color: #fff;
+  position: relative;
+  width: 160px;
+}
+
+.characterCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.characterCard.selected {
+  border-color: #1890ff;
+  background-color: #f6ffed;
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(24,144,255,0.2);
+}
+
+/* 垂直流式布局容器 */
+.verticalLayout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 角色图片容器 */
+.avatarContainer {
+  margin-bottom: 12px;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+/* 角色图片 */
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.characterCard:hover .avatar {
+  transform: scale(1.05);
+}
+
+/* 角色名称 - 文字居下 */
+.textBottom {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  margin-top: 8px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* 选中标记 */
+.checkmark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background-color: #1890ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  z-index: 1;
+}
+
+/* 操作按钮区 */
+.footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 取消按钮 */
+.cancelButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #D1D5DB;
+  background-color: white;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #F9FAFB;
+  color: #4B5563;
+}
+
+/* 确认按钮 */
+.confirmButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: #3B82F6;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmButton:hover {
+  background-color: #2563EB;
+}

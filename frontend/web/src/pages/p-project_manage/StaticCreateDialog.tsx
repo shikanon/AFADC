@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
+import { createProject, CreateProjectParams } from '../../services/api/project';
+import { message } from '../../components/Common/Message';
 
 interface StaticCreateDialogProps {
   isOpen: boolean;
@@ -119,37 +121,63 @@ const StaticCreateDialog: React.FC<StaticCreateDialogProps> = ({ isOpen, onClose
   };
   
   // 处理确认按钮点击
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // 简单的表单验证
     if (!formData.projectName.trim() || !formData.storyBackground.trim()) {
-      alert('请填写必填项');
+      message.error('请填写必填项');
       return;
     }
     
     // 如果选择了图片风格但没有上传图片或选择资产图片
     if (formData.styleChoice === 'image' && !formData.uploadedImage && !formData.selectedAssetImage) {
-      alert('请上传或选择参考图片');
+      message.error('请上传或选择参考图片');
       return;
     }
     
-    // 调用父组件传入的确认回调
-    onConfirm(formData);
-    
-    // 重置表单
-    setFormData({
-      projectName: '',
-      storyBackground: '',
-      styleChoice: 'text',
-      stylePrompt: '日系动漫风格，明亮的色彩，细腻的线条，可爱的角色设计，背景丰富',
-      videoAspect: '16:9',
-      videoResolution: '1080p'
-    });
-    
-    // 关闭弹窗
-    onClose();
-    
-    // 跳转到静态漫创建第一步页面
-    navigate('/p-static_create_step1');
+    try {
+      // 准备创建项目的数据
+      const projectData: CreateProjectParams = {
+        name: formData.projectName,
+        project_type: 'static_comic',
+        description: formData.storyBackground,
+        video_scale: formData.videoAspect,
+        video_resolution: formData.videoResolution,
+      };
+      
+      // 根据风格选择设置 prompt 或 cover_image
+      if (formData.styleChoice === 'text') {
+        projectData.prompt = formData.stylePrompt;
+      } else if (formData.selectedAssetImage) {
+        projectData.cover_image = formData.selectedAssetImage.url;
+      }
+      
+      // 调用创建项目API
+      const project = await createProject(projectData);
+      
+      // 调用父组件传入的确认回调
+      onConfirm(formData);
+      
+      // 重置表单
+      setFormData({
+        projectName: '',
+        storyBackground: '',
+        styleChoice: 'text',
+        stylePrompt: '日系动漫风格，明亮的色彩，细腻的线条，可爱的角色设计，背景丰富',
+        videoAspect: '16:9',
+        videoResolution: '1080p'
+      });
+      
+      // 关闭弹窗
+      onClose();
+      
+      // 跳转到静态漫创建第一步页面
+      // 可以将项目ID作为参数传递
+      navigate(`/static-create-step1?projectId=${project.id}`);
+      
+    } catch (error) {
+      console.error('创建项目失败:', error);
+      message.error('创建项目失败，请稍后重试');
+    }
   };
 
   // 如果弹窗未打开，则不渲染

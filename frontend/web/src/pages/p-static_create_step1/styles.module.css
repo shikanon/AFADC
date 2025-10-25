@@ -21,251 +21,255 @@
   margin-left: 56px;
 }
 
-.formInputFocus:focus {
-  outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-}
-
-.radioCustom {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #CBD5E1;
-  border-radius: 50%;
-  position: relative;
-  cursor: pointer;
-}
-
-.radioCustom:checked {
-  border-color: #3B82F6;
-}
-
-.radioCustom:checked::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-  background-color: #3B82F6;
-  border-radius: 50%;
-}
-
-/* 图片选择模式切换按钮样式 */
-.imageModeToggle {
-  display: flex;
-  background-color: #F3F4F6;
-  border-radius: 8px;
-  padding: 4px;
-  margin-bottom: 16px;
-}
-
-.imageModeButton {
-  flex: 1;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+.storyboardCard {
   transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-  background: transparent;
 }
 
-.imageModeButtonActive {
-  background-color: #3B82F6;
-  color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.imageModeButtonInactive {
-  color: #6B7280;
-}
-
-.imageModeButtonInactive:hover {
-  color: #374151;
-}
-
-/* 图片预览网格样式 */
-.imagePreviewGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-  max-height: 160px;
-  overflow-y: auto;
-}
-
-.imagePreviewItem {
-  position: relative;
-  cursor: pointer;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.imagePreviewItem:hover {
+.storyboardCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.imagePreviewItem img {
-  width: 100%;
-  height: 96px;
-  object-fit: cover;
+.dragHandle {
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.characterTag {
+  padding: 2px 6px;
   border-radius: 8px;
-  border: 1px solid #E5E7EB;
-  transition: border-color 0.2s ease;
+  font-size: 12px;
+  background-color: #DBEAFE;
+  color: #1E40AF;
 }
 
-.imagePreviewItem:hover img {
-  border-color: #3B82F6;
+/* 场景标签样式 */
+.sceneTag {
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 12px;
+  background-color: #D1FAE5;
+  color: #065F46;
 }
 
-.imagePreviewOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0);
+/* 新增样式：左右分栏布局 */
+.storyboardLayout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-  border-radius: 8px;
+  gap: 24px;
 }
 
-.imagePreviewItem:hover .imagePreviewOverlay {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-.imagePreviewCheck {
-  color: white;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.imagePreviewItem:hover .imagePreviewCheck {
-  opacity: 1;
-}
-
-/* 资产选择对话框样式 */
-.assetDialogBackdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.assetDialogCard {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  width: 100%;
-  max-width: 1024px;
-  max-height: 90vh;
+.leftColumn {
+  flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-.assetGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-@media (min-width: 768px) {
-  .assetGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-@media (min-width: 1024px) {
-  .assetGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+/* 统一标签样式 */
+.unifiedLabel {
+  display: block;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
 }
 
-@media (min-width: 1280px) {
-  .assetGrid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-.assetCard {
-  background-color: white;
+/* 固定高度文本框样式 */
+.fixedHeightTextarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
   border-radius: 8px;
-  border: 1px solid #E5E7EB;
-  padding: 12px;
-  position: relative;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.fixedHeightTextarea:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 分镜脚本文本框高度 */
+.scriptTextarea {
+  height: 100px;
+}
+
+/* 分镜字幕文本框高度 */
+.subtitleTextarea {
+  height: 80px;
+}
+
+/* 画面预览区域样式 */
+.previewContainer {
+  width: 100%;
+}
+
+.previewImagesContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.previewImageWrapper {
+  flex: 1;
+  border-radius: 8px;
+  overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 2px solid #E5E7EB; /* 未选中状态：浅灰色细边框 */
 }
 
-.assetCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+.previewImageWrapper.selected {
+  border-color: #3B82F6; /* 选中状态：蓝色高亮 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-.assetPreview {
-  position: relative;
-  margin-bottom: 12px;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.assetPreview img {
+.previewImage {
   width: 100%;
-  height: 128px;
+  height: 0;
+  padding-bottom: 75%; /* 4:3 比例 */
   object-fit: cover;
+  display: block;
 }
 
-.assetOverlay {
-  position: absolute;
+/* 按钮容器 - 图片生成和存入资产库 */
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  gap: 10px; /* 两个按钮之间的间距 */
+}
+
+/* 图片生成按钮 */
+.generateImageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #10B981; /* 绿色背景，与原按钮保持一致 */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.generateImageButton:hover {
+  background-color: #059669; /* 悬停时深绿色 */
+}
+
+/* 图片放大按钮 */
+.enlargeImageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #8B5CF6; /* 紫色背景，与其他按钮区分 */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.enlargeImageButton:hover {
+  background-color: #7C3AED; /* 悬停时深紫色 */
+}
+
+/* 存入资产库按钮 */
+.saveToAssetButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.saveToAssetButton:hover {
+  background-color: #2563EB;
+}
+
+/* 图片放大模态框样式 */
+.imageModalOverlay {
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.8); /* 半透明黑色背景 */
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  z-index: 1000; /* 确保在最上层 */
 }
 
-.assetCard:hover .assetOverlay {
-  background-color: rgba(0, 0, 0, 0.3);
+.imageModalContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.assetCheck {
+.imageModalCloseButton {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
   color: white;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  transition: transform 0.2s ease;
 }
 
-.assetCard:hover .assetCheck {
-  opacity: 1;
+.imageModalCloseButton:hover {
+  transform: scale(1.1);
 }
 
-/* 模式切换动画 */
-.modeTransition {
-  transition: opacity 0.3s ease;
+.imageModalImageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
-.modeEnter {
-  opacity: 0;
-}
-
-.modeEnterActive {
-  opacity: 1;
-}
-
-.modeExit {
-  opacity: 1;
-}
-
-.modeExitActive {
-  opacity: 0;
+.imageModalImage {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain; /* 保持图片比例，完整显示 */
+  border-radius: 4px;
 }
 

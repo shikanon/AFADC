@@ -1,5 +1,17 @@
 import { apiClient } from './client';
 
+// 创建项目请求参数接口
+export interface CreateProjectParams {
+  name: string;
+  project_type: 'static_comic' | 'dynamic_comic';
+  status?: 'draft' | 'progress' | 'completed' | 'failed';
+  description?: string;
+  video_scale?: string;
+  video_resolution?: string;
+  prompt?: string;
+  cover_image?: string;
+}
+
 // 项目创建人信息接口
 export interface ProjectCreator {
   id: number;
@@ -67,6 +79,39 @@ export const getProjects = async (params: GetProjectsParams = {}) => {
   } catch (error) {
     // 打印错误日志
     console.error('获取项目列表失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 创建新项目
+ * @param projectData 项目数据
+ * @returns 创建的项目信息
+ */
+export const createProject = async (projectData: CreateProjectParams): Promise<Project> => {
+  // 设置默认参数
+  const defaultData = {
+    status: 'draft',
+    ...projectData
+  };
+  
+  // 打印请求日志
+  console.log('创建新项目:', {
+    url: '/api/projects',
+    data: defaultData
+  });
+  
+  try {
+    // 调用API创建项目
+    const response = await apiClient.post<Project>('/api/projects', defaultData);
+    
+    // 打印响应日志
+    console.log('项目创建成功:', response);
+    
+    return response;
+  } catch (error) {
+    // 打印错误日志
+    console.error('创建项目失败:', error);
     throw error;
   }
 };
